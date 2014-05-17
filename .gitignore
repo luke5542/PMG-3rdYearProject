@@ -1,0 +1,6 @@
+#################
+## DUB
+#################
+
+game/pmgCrawler/bin/
+game/pmgCrawler/.dub/

@@ -159,5 +159,4 @@ class VertexTileMap : Drawable, Transformable
         // draw the vertex array
         target.draw(m_vertices, states);
     }
-
 }

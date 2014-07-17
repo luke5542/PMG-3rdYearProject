@@ -144,7 +144,6 @@ class GUI
     //            lifeMap.updateLifeState(w, h);
     //        }
     //    }
-    //}
 
     void draw(ref RenderWindow window)
     {

@@ -14,15 +14,39 @@ class GUI
 	{
 		RenderWindow window;
 
-        TileMap lifeMap;
+        //TileMap lifeMap;
+        VertexTileMap lifeMap;
+
+        const(bool[]) level =
+        [
+            false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+            false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+            false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+            false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false,
+            false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false,
+            false, false, true, true, true, false, false, false, false, false, false, false, false, false, false, false, false,
+            false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+            false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+            false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+            false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+            false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+            false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+            false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+            true, false, false, false, false, false, false, false, false, false, true, true, true, false, false, false, false,
+            true, false, false, false, false, false, false, false, false, true, true, true, false, false, false, false, false,
+            true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+            true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+        ];
 	}
 
 	this()
 	{
-		window = new RenderWindow(/*VideoMode.getDesktopMode()*/VideoMode(800,800), "PMG Crawler");//, Window.Style.None);
-		window.setFramerateLimit(10);
+		window = new RenderWindow(/*VideoMode.getDesktopMode()*/VideoMode(800,600), "PMG Crawler");//, Window.Style.None);
+		window.setFramerateLimit(3);
 
-        lifeMap = new TileMap(Vector2i(60, 60));
+        //lifeMap = new TileMap(Vector2i(60, 60));
+        lifeMap = new VertexTileMap();
+        lifeMap.load(Vector2u(10, 10), level, 17, 17);
 	}
 
 	void run()
@@ -55,11 +79,12 @@ class GUI
     {
         //writeln("updating...");
 
-        int numNeighborsAlive = 0;
-        for(int w = 1; w < lifeMap.getWidth() - 1; w++)
+        int numNeighborsAlive;
+        for(int w = 1; w < lifeMap.getWidth()-1; ++w)
         {
-            for(int h = 1; h < lifeMap.getHeight() - 1; h++)
+            for(int h = 1; h < lifeMap.getHeight()-1; ++h)
             {
+                numNeighborsAlive = 0;
                 if(lifeMap.getIsAlive(w-1, h-1))//Top Left
                 {
                     numNeighborsAlive++;
@@ -92,35 +117,30 @@ class GUI
                 {
                     numNeighborsAlive++;
                 }
-
-                if(lifeMap.getIsAlive(w, h))
+                /*if(lifeMap.getIsAlive(w, h))
                 {
-                    if(numNeighborsAlive < 2)
-                    {
-                        lifeMap.setIsStillAlive(w, h, false);
-                    }
-                    else if(numNeighborsAlive > 3)
-                    {
-                        lifeMap.setIsStillAlive(w, h, false);
-                    }
-                    else
-                    {
-                        lifeMap.setIsStillAlive(w, h, true);
-                    }
+                    numNeighborsAlive++;
+                }*/
+
+                if(numNeighborsAlive == 3
+                    || (numNeighborsAlive == 2 && lifeMap.getIsAlive(w, h)))
+                {
+                    lifeMap.setIsStillAlive(w, h, true);
                 }
                 else
                 {
-                    if(numNeighborsAlive == 3)
-                    {
-                        lifeMap.setIsStillAlive(w, h, true);
-                    }
-                    else
-                    {
-                        lifeMap.setIsStillAlive(w, h, false);
-                    }
+                    lifeMap.setIsStillAlive(w, h, false);
                 }
+
+                //lifeMap.updateLifeState(w, h);
             }
         }
+
+        updateLifeStates();
+    }
+
+    void updateLifeStates() {
+        writeln("updating life states...");
 
         for(int w = 1; w < lifeMap.getWidth() - 1; w++)
         {

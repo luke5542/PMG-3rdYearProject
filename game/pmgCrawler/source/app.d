@@ -17,7 +17,7 @@ class GUI
         //TileMap lifeMap;
         VertexTileMap lifeMap;
 
-        const(bool[]) level =
+        static const(bool[]) level =
         [
             false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
             false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,

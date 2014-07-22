@@ -22,75 +22,76 @@ import ridgway.pmgcrawler.tile;
 
 }*/
 
-class TileMap
+class TileMap : Drawable, Transformable
 {
-	private
-	{
-		ColoredTile[][] m_tiles;
+    mixin NormalTransformable;
 
-        Vector2i m_size;
-
-        int m_tileSize;
-	}
-
-    this(Vector2i size, int tileSize = 10)
+    private
     {
-        m_tileSize = tileSize;
-        m_size = size;
+        VertexArray m_vertices;
+        Texture m_tileset;
+        Vector2u m_size;
+    }
 
-        m_tiles = new ColoredTile[][](m_size.x, m_size.y);
-        //m_tiles.length = m_size.y;
+    this()
+    {
+    }
 
-        foreach(uint h, ColoredTile[] h_tiles; m_tiles)
+    bool load(const(string) tileset, Vector2u tileSize, const(int[]) tiles, uint width, uint height)
+    {
+        // load the tileset texture
+        if (!m_tileset.loadFromFile(tileset))
+            return false;
+
+        m_size = Vector2u(width, height);
+
+        // resize the vertex array to fit the level size
+        m_vertices = new VertexArray(PrimitiveType.Quads, width * height * 4);
+
+        // populate the vertex array, with one quad per tile
+        for (uint i = 0; i < width; ++i)
         {
-            //h_tiles.length = m_size.x;
-            foreach(uint w, ColoredTile w_tile; h_tiles)
+            for (uint j = 0; j < height; ++j)
             {
-                m_tiles[w][h] = new ColoredTile(Vector2f(m_tileSize, m_tileSize), uniform!(ushort)()%4 == 1);
-                m_tiles[w][h].position = Vector2f(m_tileSize*w, m_tileSize*h);
+                // get the current tile number
+                int tileNumber = tiles[i + j * width];
+
+                // find its position in the tileset texture
+                int tu = tileNumber % (m_tileset.getSize().x / tileSize.x);
+                int tv = tileNumber / (m_tileset.getSize().x / tileSize.x);
+
+                // get a reference to the start of the current tile's quad
+                uint quad = (i + j * width) * 4;
+
+                // define its 4 corners
+                m_vertices[quad + 0].position = Vector2f(i * tileSize.x, j * tileSize.y);
+                m_vertices[quad + 1].position = Vector2f((i + 1) * tileSize.x, j * tileSize.y);
+                m_vertices[quad + 2].position = Vector2f((i + 1) * tileSize.x, (j + 1) * tileSize.y);
+                m_vertices[quad + 3].position = Vector2f(i * tileSize.x, (j + 1) * tileSize.y);
+
+                // define its 4 texture coordinates
+                m_vertices[quad + 0].texCoords = Vector2f(tu * tileSize.x, tv * tileSize.y);
+                m_vertices[quad + 1].texCoords = Vector2f((tu + 1) * tileSize.x, tv * tileSize.y);
+                m_vertices[quad + 2].texCoords = Vector2f((tu + 1) * tileSize.x, (tv + 1) * tileSize.y);
+                m_vertices[quad + 3].texCoords = Vector2f(tu * tileSize.x, (tv + 1) * tileSize.y);
             }
         }
+
+        return true;
     }
 
-    const(uint) getHeight()
+    const(Vector2u) getSize()
     {
-        return m_size.y;
+        return m_size;
     }
 
-    const(uint) getWidth()
+    override void draw(RenderTarget target, RenderStates states = RenderStates.Default)
     {
-        return m_size.x;
-    }
+        // apply the transform
+        states.transform *= getTransform();
 
-    bool getIsAlive(uint x, uint y)
-    {
-        return m_tiles[x][y].isAlive;
-    }
-
-    void setIsAlive(uint x, uint y, bool alive)
-    {
-        m_tiles[x][y].isAlive = alive;
-    }
-
-    void setIsStillAlive(uint x, uint y, bool alive)
-    {
-        m_tiles[x][y].isStillAlive = alive;
-    }
-
-    void updateLifeState(uint x, uint y)
-    {
-        m_tiles[x][y].isAlive = m_tiles[x][y].isStillAlive;
-    }
-
-    void draw(ref RenderWindow window)
-    {
-        foreach(ColoredTile[] h_tiles; m_tiles)
-        {
-            foreach(ColoredTile w_tile; h_tiles)
-            {
-                window.draw(w_tile);
-            }
-        }
+        // draw the vertex array
+        target.draw(m_vertices, states);
     }
 }
 

@@ -1,6 +1,7 @@
 module ridgway.pmgcrawler.map;
 
 import std.random;
+import std.stdio;
 
 import dsfml.system;
 import dsfml.graphics;
@@ -35,6 +36,7 @@ class TileMap : Drawable, Transformable
 
     this()
     {
+        m_tileset = new Texture();
     }
 
     bool load(const(string) tileset, Vector2u tileSize, const(int[]) tiles, uint width, uint height)
@@ -48,6 +50,7 @@ class TileMap : Drawable, Transformable
         // resize the vertex array to fit the level size
         m_vertices = new VertexArray(PrimitiveType.Quads, width * height * 4);
 
+        writeln("Setting tiles...");
         // populate the vertex array, with one quad per tile
         for (uint i = 0; i < width; ++i)
         {
@@ -58,7 +61,7 @@ class TileMap : Drawable, Transformable
 
                 // find its position in the tileset texture
                 int tu = tileNumber % (m_tileset.getSize().x / tileSize.x);
-                int tv = tileNumber / (m_tileset.getSize().x / tileSize.x);
+                int tv = tileNumber / (m_tileset.getSize().y / tileSize.y);
 
                 // get a reference to the start of the current tile's quad
                 uint quad = (i + j * width) * 4;
@@ -90,6 +93,9 @@ class TileMap : Drawable, Transformable
         // apply the transform
         states.transform *= getTransform();
 
+        // apply the tileset texture
+        states.texture = m_tileset;
+        
         // draw the vertex array
         target.draw(m_vertices, states);
     }

@@ -1,13 +1,14 @@
 module ridgway.pmgcrawler.main;
 
 import std.stdio;
+import std.c.stdlib;
 import dsfml.system;
 import dsfml.graphics;
 import dsfml.window;
 
 import ridgway.pmgcrawler.map;
 
-class GUI
+class LifeGUI
 {
 
 	private
@@ -162,10 +163,88 @@ class GUI
 
 }
 
+class TileMapGUI
+{
+
+    private
+    {
+        RenderWindow window;
+
+        //TileMap lifeMap;
+        TileMap tileMap;
+
+        static const(int[]) level =
+        [
+            0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0,
+        ];
+    }
+
+    this()
+    {
+        window = new RenderWindow(/*VideoMode.getDesktopMode()*/VideoMode(800,600), "PMG Crawler");
+        window.setFramerateLimit(3);
+
+        writeln("Loading tile map");
+        //tileMap = new TileMap(Vector2i(60, 60));
+        tileMap = new TileMap();
+        if(!tileMap.load("assets/dungeonGround.png", Vector2u(128, 128), level, 5, 5))
+        {
+            writeln("Couldn't load image...");
+            exit(1);
+        }
+        
+    }
+
+    void run()
+    {
+        //For event polling...
+        Event event;
+
+        Clock clock = new Clock();
+
+        while (window.isOpen())
+        {
+            // check all the window's events that were triggered since the last iteration of the loop
+            while(window.pollEvent(event))
+            {
+                // "close requested" event: we close the window
+                if(event.type == Event.EventType.Closed)
+                {
+                    window.close();
+                }
+            }
+
+            Time time = clock.getElapsedTime();
+            clock.restart();
+            update(window, time);
+            draw(window);
+        }
+    }
+
+    void update(ref RenderWindow window, Time time)
+    {
+        
+    }
+
+    void draw(ref RenderWindow window)
+    {
+        window.clear();
+
+        tileMap.draw(window);
+
+        window.display();
+    }
+
+}
+
 void main()
 {
 	writeln("Staring GUI...");
-    GUI gui = new GUI();
+    TileMapGUI gui = new TileMapGUI();
     gui.run();
 }
 

@@ -1,5 +1,7 @@
 module ridgway.pmgcrawler.spritesheet;
 
+import dsfml.graphics;
+
 class SpriteSheet
 {
 	private

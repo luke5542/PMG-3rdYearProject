@@ -1,5 +1,9 @@
 module ridgway.pmgcrawler.player;
 
+import dsfml.graphics;
+
+import ridgway.pmgcrawler.spritesheet;
+
 class Player : Sprite
 {
 

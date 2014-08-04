@@ -8,5 +8,6 @@
     {
         "dsfml:graphics": "~master",
     },
+    "copyFiles":["libs/*"],
     "targetPath": "bin\\",
 }

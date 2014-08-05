@@ -3,7 +3,7 @@
 	"description": "A Game for Testing Various PMG Algorithms",
 	"copyright": "Copyright © 2014, devin",
 	"authors": ["devin"],
-    "lflags": ["-Llibs/", "-R."],
+    "lflags": ["-Llibs", "-R."],
     "dependencies":
     {
         "dsfml:graphics": "~master",

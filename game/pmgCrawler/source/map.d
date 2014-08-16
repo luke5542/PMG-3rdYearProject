@@ -8,21 +8,6 @@ import dsfml.graphics;
 
 import ridgway.pmgcrawler.tile;
 
-/*class MapData
-{
-
-	private
-	{
-		char[][] tileTypes;
-	}
-
-	this(int x, int y)
-	{
-		tileTypes = new char[x][y];
-	}
-
-}*/
-
 class TileMap : Drawable, Transformable
 {
     mixin NormalTransformable;
@@ -32,6 +17,11 @@ class TileMap : Drawable, Transformable
         VertexArray m_vertices;
         Texture m_tileset;
         Vector2u m_size;
+        Vector2u m_tileSize;
+
+        /// This is the (x,y) of the focused tile.
+        /// This tile is centered on the m_tileCenter location.
+        Vector2u m_focusedTile;
     }
 
     this()
@@ -46,6 +36,10 @@ class TileMap : Drawable, Transformable
             return false;
 
         m_size = Vector2u(width, height);
+        m_tileSize = tileSize;
+
+        //Initialize the location variables
+        this.origin = Vector2f((width * tileSize.x) / 2, (height * tileSize.y) / 2);
 
         // resize the vertex array to fit the level size
         m_vertices = new VertexArray(PrimitiveType.Quads, width * height * 4);
@@ -83,6 +77,33 @@ class TileMap : Drawable, Transformable
         return true;
     }
 
+    /// This sets to currently focused tile in the tile map.
+    /// It sets the position for this tile map, so don't manually set the position.
+    @property
+    {   
+        Vector2u focusedTile(Vector2u newFocus)
+        {
+            if(newFocus.x > m_size.x || newFocus.y > m_size.y)
+            {
+                m_focusedTile = Vector2u(0, 0);
+            }
+            else
+            {
+                m_focusedTile = newFocus;
+            }
+            position = Vector2f((newFocus.x * m_tileSize.x) + (m_tileSize.x / 2),
+                                (newFocus.y * m_tileSize.y) + (m_tileSize.y / 2));
+
+            return m_focusedTile;
+        }
+
+        Vector2u focusedTile() const
+        {
+            retrun m_focusedTile;
+        }
+    }
+
+    /// This returns the tile map's size in units of tiles
     const(Vector2u) getSize()
     {
         return m_size;
@@ -95,9 +116,11 @@ class TileMap : Drawable, Transformable
 
         // apply the tileset texture
         states.texture = m_tileset;
-        
+
         // draw the vertex array
         target.draw(m_vertices, states);
+
+
     }
 }
 

@@ -4,7 +4,7 @@ import dsfml.graphics;
 
 import ridgway.pmgcrawler.spritesheet;
 
-class Player : Sprite
+class Player : Sprite, Updateable
 {
 
 	private
@@ -15,6 +15,11 @@ class Player : Sprite
 	this(SpriteSheet spriteSheet)
 	{
 		m_sheet = spriteSheet;
+	}
+
+	void update(Time time)
+	{
+		//TODO find something to update
 	}
 
 	override void draw(RenderTarget target, RenderStates states)

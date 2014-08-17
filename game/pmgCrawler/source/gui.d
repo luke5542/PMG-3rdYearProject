@@ -1,5 +1,8 @@
 module ridgway.pmgcrawler.gui;
 
+import std.stdio;
+import std.c.stdlib;
+
 import dsfml.system;
 import dsfml.graphics;
 import dsfml.window;
@@ -84,6 +87,33 @@ class TileMapGUI
                 {
                     window.close();
                 }
+                else if(event.type == Event.EventType.KeyPressed)
+                {
+                	if(event.key.code == Keyboard.Key.Down)
+                	{
+                		writeln("Down arrow key pressed.");
+                		tileMap.focusedTile = tileMap.focusedTile + Vector2u(0, 1);
+                	}
+                	else if(event.key.code == Keyboard.Key.Up)
+                	{
+                		writeln("Up arrow key pressed.");
+                		tileMap.focusedTile = tileMap.focusedTile +  Vector2u(0, -1);
+                	}
+                	else if(event.key.code == Keyboard.Key.Left)
+                	{
+                		writeln("Left arror key pressed.");
+                		tileMap.focusedTile = tileMap.focusedTile +  Vector2u(-1, 0);
+                	}
+                	else if(event.key.code == Keyboard.Key.Right)
+                	{
+                		writeln("Right arrow key pressed.");
+                		tileMap.focusedTile = tileMap.focusedTile +  Vector2u(1, 0);
+                	}
+                	else if(event.key.code == Keyboard.Key.Escape)
+                	{
+                		exit(0);
+                	}
+                }
             }
 
             Time time = clock.getElapsedTime();
@@ -95,8 +125,9 @@ class TileMapGUI
 
     void update(ref RenderWindow window, Time time)
     {
-        m_player.update(time);
-        tileMap.update(time);
+
+        //m_player.update(time);
+        //tileMap.update(time);
     }
 
     void draw(ref RenderWindow window)

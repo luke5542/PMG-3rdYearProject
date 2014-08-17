@@ -1,7 +1,7 @@
 module ridgway.pmgcrawler.main;
 
 import std.stdio;
-import std.c.stdlib;
+
 import dsfml.system;
 import dsfml.graphics;
 import dsfml.window;

@@ -91,15 +91,17 @@ class TileMap : Drawable, Transformable
             {
                 m_focusedTile = newFocus;
             }
-            position = Vector2f((newFocus.x * m_tileSize.x) + (m_tileSize.x / 2),
+            this.position = Vector2f((newFocus.x * m_tileSize.x) + (m_tileSize.x / 2),
                                 (newFocus.y * m_tileSize.y) + (m_tileSize.y / 2));
+
+            writeln("New focused tile: " ~ m_focusedTile.toString());
 
             return m_focusedTile;
         }
 
         Vector2u focusedTile() const
         {
-            retrun m_focusedTile;
+            return m_focusedTile;
         }
     }
 

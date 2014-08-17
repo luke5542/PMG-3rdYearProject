@@ -4,7 +4,7 @@ import dsfml.graphics;
 
 import ridgway.pmgcrawler.spritesheet;
 
-class Player : Sprite, Updateable
+class Player : Sprite
 {
 
 	private

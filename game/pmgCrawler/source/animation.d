@@ -1,6 +1,7 @@
 module ridgway.pmgcrawler.animation;
 
 import dsfml.system;
+import dsfml.graphics;
 
 class Animation
 {

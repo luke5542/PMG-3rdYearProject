@@ -167,7 +167,7 @@ class LifeGUI
 
 void main()
 {
-	writeln("Staring GUI...");
+	debug writeln("Staring GUI...");
     TileMapGUI gui = new TileMapGUI();
     gui.run();
 }

@@ -44,7 +44,7 @@ class TileMap : Drawable, Transformable
         // resize the vertex array to fit the level size
         m_vertices = new VertexArray(PrimitiveType.Quads, width * height * 4);
 
-        writeln("Setting tiles...");
+        debug writeln("Setting tiles...");
         // populate the vertex array, with one quad per tile
         for (uint i = 0; i < width; ++i)
         {
@@ -94,7 +94,7 @@ class TileMap : Drawable, Transformable
             this.position = Vector2f((newFocus.x * m_tileSize.x) + (m_tileSize.x / 2),
                                 (newFocus.y * m_tileSize.y) + (m_tileSize.y / 2));
 
-            writeln("New focused tile: " ~ m_focusedTile.toString());
+            debug writeln("New focused tile: " ~ m_focusedTile.toString());
 
             return m_focusedTile;
         }

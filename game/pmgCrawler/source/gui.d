@@ -59,7 +59,7 @@ class TileMapGUI
         window = new RenderWindow(/*VideoMode.getDesktopMode()*/VideoMode(800,600), "PMG Crawler");
         window.setFramerateLimit(3);
 
-        writeln("Loading tile map");
+        debug writeln("Loading tile map");
         //tileMap = new TileMap(Vector2i(60, 60));
         tileMap = new TileMap();
         if(!tileMap.load(TILE_MAP_LOC, Vector2u(32, 32), level, 25, 20))

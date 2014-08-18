@@ -3,9 +3,11 @@ module ridgway.pmgcrawler.player;
 import dsfml.graphics;
 
 import ridgway.pmgcrawler.spritesheet;
+import ridgway.pmgcrawler.node;
 
-class Player : Sprite
+class Player : Sprite, Node
 {
+	mixin NormalNode;
 
 	private
 	{
@@ -20,6 +22,7 @@ class Player : Sprite
 	void update(Time time)
 	{
 		//TODO find something to update
+		updateAnimations(time);
 	}
 
 	override void draw(RenderTarget target, RenderStates states)

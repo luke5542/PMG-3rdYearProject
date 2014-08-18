@@ -7,10 +7,12 @@ import dsfml.system;
 import dsfml.graphics;
 
 import ridgway.pmgcrawler.tile;
+import ridgway.pmgcrawler.node;
 
-class TileMap : Drawable, Transformable
+class TileMap : Drawable, Transformable, Node
 {
     mixin NormalTransformable;
+    mixin NormalNode;
 
     private
     {
@@ -109,6 +111,11 @@ class TileMap : Drawable, Transformable
     const(Vector2u) getSize()
     {
         return m_size;
+    }
+
+    void update(Time time)
+    {
+        updateAnimations();
     }
 
     override void draw(RenderTarget target, RenderStates states = RenderStates.Default)

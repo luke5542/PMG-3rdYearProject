@@ -1,5 +1,7 @@
 module ridgway.pmgcrawler.node;
 
+import std.algorithm;
+
 import dsfml.system;
 
 import ridgway.pmgcrawler.animation;
@@ -8,10 +10,14 @@ interface Node
 {
 	void runAnimation(Animation anim);
 	void updateAnimations(Time time);
+	void update(Time time);
 }
 
-mixin template NormalNode
+mixin template NormalNode()
 {
+	import ridgway.pmgcrawler.animation;
+	import std.algorithm;
+
 	private
 	{
 		Animation[] m_animations;
@@ -25,9 +31,16 @@ mixin template NormalNode
 
 	void updateAnimations(Time time)
 	{
-		foreach(anim; m_animations)
+		foreach(i, anim; m_animations)
 		{
-			anim.update(time);
+			if(anim.isRunning())
+			{
+				anim.update(time);
+			}
+			else
+			{
+				remove!(SwapStrategy.unstable)(m_animations, i);
+			}
 		}
 	}
 

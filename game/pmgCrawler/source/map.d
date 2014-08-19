@@ -115,7 +115,7 @@ class TileMap : Drawable, Transformable, Node
 
     void update(Time time)
     {
-        updateAnimations();
+        updateAnimations(time);
     }
 
     override void draw(RenderTarget target, RenderStates states = RenderStates.Default)

@@ -67,7 +67,7 @@ class Animation
 
 class TransformAnimation : Animation
 {
-	private
+	protected
 	{
 		Transformable m_transformable;
 	}
@@ -77,9 +77,76 @@ class TransformAnimation : Animation
 		super(duration);
 		m_transformable = transformable;
 	}
+}
+
+class RotateAnimation : TransformAnimation
+{
+	protected
+	{
+		double m_startValue;
+		double m_endValue;
+	}
+
+	this(Transformable transformable, Time duration, double startValue, double endValue)
+	{
+		super(transformable, duration);
+		m_startValue = startValue;
+		m_endValue = endValue;
+	}
 
 	override void update(double progress)
 	{
-		//TODO finish this...
+		double newRotation = m_startValue + (m_endValue - m_startValue) * progress;
+		m_transformable.rotation = newRotation;
+	}
+
+}
+
+class VectorTransformAnimation : TransformAnimation
+{
+	protected
+	{
+		Vector2f m_startValue;
+		Vector2f m_endValue;
+	}
+
+	this(Transformable transformable, Time duration, Vector2f startValue, Vector2f endValue)
+	{
+		super(transformable, duration);
+		m_startValue = startValue;
+		m_endValue = endValue;
+	}
+
+	Vector2f getUpdatedVector(double progress)
+	{
+		return (m_startValue + (m_endValue - m_startValue) * progress);
+	}
+}
+
+class TranslationAnimation : VectorTransformAnimation
+{
+
+	this(Transformable transformable, Time duration, Vector2f startValue, Vector2f endValue)
+	{
+		super(transformable, duration, startValue, endValue);
+	}
+
+	override void update(double progress)
+	{
+		m_transformable.position = getUpdatedVector(progress);
+	}
+}
+
+class ScaleAnimation : VectorTransformAnimation
+{
+
+	this(Transformable transformable, Time duration, Vector2f startValue, Vector2f endValue)
+	{
+		super(transformable, duration, startValue, endValue);
+	}
+
+	override void update(double progress)
+	{
+		m_transformable.scale = getUpdatedVector(progress);
 	}
 }

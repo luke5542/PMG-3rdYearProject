@@ -31,6 +31,7 @@ mixin template NormalNode()
 
 	void updateAnimations(Time time)
 	{
+		ulong[] itemsToRemove;
 		foreach(i, anim; m_animations)
 		{
 			if(anim.isRunning())
@@ -39,8 +40,14 @@ mixin template NormalNode()
 			}
 			else
 			{
-				remove!(SwapStrategy.unstable)(m_animations, i);
+				itemsToRemove ~= i;
 			}
+		}
+
+		//Remove all the items designated for removal...
+		foreach(i; itemsToRemove)
+		{
+			remove!(SwapStrategy.unstable)(m_animations, i);
 		}
 	}
 

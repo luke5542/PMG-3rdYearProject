@@ -9,6 +9,7 @@ import dsfml.window;
 
 import ridgway.pmgcrawler.map;
 import ridgway.pmgcrawler.constants;
+import ridgway.pmgcrawler.player;
 
 
 class TileMapGUI
@@ -51,7 +52,7 @@ class TileMapGUI
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         ];
 
-        Sprite m_player;
+        //Player m_player;
     }
 
     this()
@@ -62,12 +63,16 @@ class TileMapGUI
         debug writeln("Loading tile map");
         //tileMap = new TileMap(Vector2i(60, 60));
         tileMap = new TileMap();
-        if(!tileMap.load(TILE_MAP_LOC, Vector2u(32, 32), level, 25, 20))
+        if(!tileMap.load(TILE_MAP_LOC, Vector2u(32, 32), level, 20, 20))
         {
             writeln("Couldn't load image...");
             exit(1);
         }
-        
+
+        tileMap.focusedTile = Vector2u(10, 10);
+        tileMap.focusedLocation = Vector2i(400, 300);
+
+        //m_player = new Player();
     }
 
     void run()
@@ -127,7 +132,7 @@ class TileMapGUI
     {
 
         //m_player.update(time);
-        //tileMap.update(time);
+        tileMap.update(time);
     }
 
     void draw(ref RenderWindow window)

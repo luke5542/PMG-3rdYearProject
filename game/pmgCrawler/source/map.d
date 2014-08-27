@@ -24,11 +24,16 @@ class TileMap : Drawable, Transformable, Node
         /// This is the (x,y) of the focused tile.
         /// This tile is centered on the m_tileCenter location.
         Vector2u m_focusedTile;
+
+        Vector2i m_tileCenter;
     }
 
     this()
     {
         m_tileset = new Texture();
+        m_tileCenter = Vector2i();
+        m_focusedTile = Vector2u();
+        m_tileSize = Vector2u();
     }
 
     bool load(const(string) tileset, Vector2u tileSize, const(int[]) tiles, uint width, uint height)
@@ -41,7 +46,7 @@ class TileMap : Drawable, Transformable, Node
         m_tileSize = tileSize;
 
         //Initialize the location variables
-        this.origin = Vector2f((width * tileSize.x) / 2, (height * tileSize.y) / 2);
+        this.origin = Vector2f(0, 0);//Vector2f((width * tileSize.x) / 2, (height * tileSize.y) / 2);
 
         // resize the vertex array to fit the level size
         m_vertices = new VertexArray(PrimitiveType.Quads, width * height * 4);
@@ -76,6 +81,8 @@ class TileMap : Drawable, Transformable, Node
             }
         }
 
+        updateFocusLocation();
+
         return true;
     }
 
@@ -87,16 +94,16 @@ class TileMap : Drawable, Transformable, Node
         {
             if(newFocus.x > m_size.x || newFocus.y > m_size.y)
             {
-                m_focusedTile = Vector2u(0, 0);
+                //m_focusedTile = Vector2u(0, 0);
+                writeln("Error: Trying to exceed tile size! " ~ newFocus.toString());
             }
             else
             {
                 m_focusedTile = newFocus;
             }
-            this.position = Vector2f((newFocus.x * m_tileSize.x) + (m_tileSize.x / 2),
-                                (newFocus.y * m_tileSize.y) + (m_tileSize.y / 2));
 
             debug writeln("New focused tile: " ~ m_focusedTile.toString());
+            updateFocusLocation();
 
             return m_focusedTile;
         }
@@ -105,6 +112,34 @@ class TileMap : Drawable, Transformable, Node
         {
             return m_focusedTile;
         }
+    }
+
+    /// This sets the current location for the focused tile.
+    /// It sets the position for this tile map, so don't manually set the position.
+    @property
+    {   
+        Vector2i focusedLocation(Vector2i newCenter)
+        {
+            m_tileCenter = newCenter;
+
+            debug writeln("New focused location: " ~ m_tileCenter.toString());
+            updateFocusLocation();
+
+            return m_tileCenter;
+        }
+
+        Vector2i focusedLocation() const
+        {
+            return m_tileCenter;
+        }
+    }
+
+    private void updateFocusLocation()
+    {
+        this.position = Vector2f(m_tileCenter.x - cast(float)(m_focusedTile.x * m_tileSize.x) - (m_tileSize.x / 2),
+                                 m_tileCenter.y - cast(float)(m_focusedTile.y * m_tileSize.y) - (m_tileSize.y / 2));
+
+        debug writeln("New location: " ~ position.toString());
     }
 
     /// This returns the tile map's size in units of tiles

@@ -44,13 +44,12 @@ mixin template NormalNode()
 			}
 		}
 
-		//Remove all the items designated for removal...
-		/*foreach(i; itemsToRemove)
+		if(itemsToRemove.length > 0)
 		{
-			remove!(SwapStrategy.unstable)(m_animations, i);
-		}*/
+			//Remove all the items designated for removal...
+			remove!(SwapStrategy.unstable)(m_animations, itemsToRemove);
+		}
 
-		remove!(SwapStrategy.unstable)(m_animations, itemsToRemove);
 	}
 
 }

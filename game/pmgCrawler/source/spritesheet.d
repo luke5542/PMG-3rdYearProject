@@ -1,6 +1,8 @@
 module ridgway.pmgcrawler.spritesheet;
 
 import std.file;
+import std.stdio;
+import std.string;
 import std.json;
 
 import dsfml.graphics;
@@ -30,12 +32,14 @@ class SpriteSheet
 	bool loadFromFile(in string imageFile, in string metaDataFile)
 	{
 		//Load the files...
-		if (!m_sheet.loadFromFile(tileset) || !exists(metaDataFile))
+		if (!m_sheet.loadFromFile(imageFile) || !exists(metaDataFile))
             return false;
 
         string metaData = chomp(readText(metaDataFile));
         JSONValue metaJson = parseJSON(metaData);
-        debug writeln("Parsing JSON: " ~ metaJson);
+        debug writeln("Parsing JSON: " ~ metaJson.toString());
+
+        return true;
 	}
 
 	Texture getTexture()

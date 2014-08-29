@@ -20,16 +20,9 @@ class SpriteSheet
 		m_sheet = new Texture();
 	}
 
-	/// This assumes that the file name of the meta-data
-	/// file and the image both have the same base name.
-	/// This also assumes that the files have the extensions
-	/// '.png' for the image and '.json' for the meta data
-	bool loadFromFile(in string file)
-	{
-		return loadFromFile(file ~ ".png", file ~ ".json");
-	}
-
-	bool loadFromFile(in string imageFile, in string metaDataFile)
+	/// This takes the name of the meta data input file and 
+	/// grabs the image file's name from the meta data.
+	bool loadFromFile(in string metaDataFile)
 	{
 		//Load the files...
 		if (!m_sheet.loadFromFile(imageFile) || !exists(metaDataFile))
@@ -38,6 +31,12 @@ class SpriteSheet
         string metaData = chomp(readText(metaDataFile));
         JSONValue metaJson = parseJSON(metaData);
         debug writeln("Parsing JSON: " ~ metaJson.toString());
+
+        auto spriteFrames = metaJson["frames"];
+        for(val; spriteFrames)
+        {
+        	
+        }
 
         return true;
 	}
@@ -56,5 +55,5 @@ class SpriteSheet
 unittest
 {
 	SpriteSheet sheet = new SpriteSheet();
-	sheet.loadFromFile("testSpriteSheet");
+	sheet.loadFromFile("tiles_spritesheet");
 }

@@ -1,0 +1,30 @@
+{"frames": [
+
+{
+	"filename": "ground-empty.png",
+	"frame": {"x":2,"y":2,"w":32,"h":32},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":32,"h":32},
+	"sourceSize": {"w":32,"h":32},
+	"pivot": {"x":0.5,"y":0.5}
+},
+{
+	"filename": "ground-walkable.png",
+	"frame": {"x":36,"y":2,"w":32,"h":32},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":32,"h":32},
+	"sourceSize": {"w":32,"h":32},
+	"pivot": {"x":0.5,"y":0.5}
+}],
+"meta": {
+	"app": "http://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "tiles_spritesheet.png",
+	"format": "RGBA8888",
+	"size": {"w":70,"h":36},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:4024f0f690a62d971fb0764562368988:b916ecbff63c474f08e778e30fd3e7a4:c4771d507d4821a45524bd6e821c3fb0$"
+}
+}

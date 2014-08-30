@@ -4,6 +4,7 @@ import std.file;
 import std.stdio;
 import std.string;
 import std.json;
+import std.path;
 
 import dsfml.graphics;
 
@@ -33,6 +34,8 @@ class SpriteSheet
             return false;
 		}
 
+		string metaDataDirectory = dirName(metaDataFile);
+
         string metaData = chomp(readText(metaDataFile));
         JSONValue metaJson = parseJSON(metaData);
         debug writeln("Parsing JSON: ", metaJson.toString());
@@ -48,7 +51,7 @@ class SpriteSheet
         	m_spriteFrames[name] = rect;
         }
 
-        string imageFile = metaJson["meta"]["image"].str;
+        string imageFile = metaDataDirectory ~ "/" ~ metaJson["meta"]["image"].str;
         debug writeln("Loading image file from: ", imageFile);
 
         if (!m_sheet.loadFromFile(imageFile))
@@ -76,6 +79,6 @@ unittest
 	writeln("Testing SpriteSheets");
 
 	SpriteSheet sheet = new SpriteSheet();
-	assert(sheet.loadFromFile("tiles_spritesheet.json"));
+	assert(sheet.loadFromFile("assets/tiles_spritesheet.json"));
 	assert(sheet.getSpriteRect("ground-empty.png") == LongRect(2, 2, 32, 32));
 }

@@ -29,7 +29,9 @@
                                 "libs/libdsfml-audio.so.2.0",
                                 "libs/libdsfml-system.so",
                                 "libs/libdsfml-graphics.so",
-                                "libs/libdsfml-system.so.2"],
+                                "libs/libdsfml-system.so.2",],
+            "postBuildCommands":["mkdir -p unittests/assets",
+                    "cp -rf ../../images/unittest-assets/* unittests/assets/"],
             "targetPath": "unittests\\",
         },
         {
@@ -57,6 +59,8 @@
                                 "libs/libdsfml-system.so",
                                 "libs/libdsfml-graphics.so",
                                 "libs/libdsfml-system.so.2"],
+            "postBuildCommands":["mkdir -p bin/debug/assets",
+                    "cp -rf ../../images/assets/* bin/debug/assets/"],
             "targetPath": "bin\\debug\\",
         },
         {
@@ -84,6 +88,8 @@
                                 "libs/libdsfml-system.so",
                                 "libs/libdsfml-graphics.so",
                                 "libs/libdsfml-system.so.2"],
+            "postBuildCommands":["mkdir -p bin/release/assets",
+                    "cp -rf ../../images/assets/* bin/release/assets/"],
             "targetPath": "bin\\release\\",
         }
     ],

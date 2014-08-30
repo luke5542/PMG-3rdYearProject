@@ -24,14 +24,14 @@ class Animation
 
 	/// This is called with the value (0-1) of the
 	/// amount that this animation has completed by. TODO: word better
-	abstract void update(double progress);
+	protected abstract void updateProgress(double progress);
 
 	/// This takes the delta time since the last update call as the input.
-	final void update(Time time)
+	public final void update(Time deltaTime)
 	{
 		if(m_isRunning)
 		{
-			m_progress = m_progress + time;
+			m_progress = m_progress + deltaTime;
 			double progress = m_progress.asMilliseconds() / m_duration.asMilliseconds();
 			if(progress >= 1)
 			{
@@ -43,11 +43,11 @@ class Animation
 			progress = m_interpolator.interpolate(progress);
 
 			// send the progress update call to this animation
-			update(progress);
+			updateProgress(progress);
 		}
 	}
 
-	void setInterpolator(Interpolator interpolator)
+	public void setInterpolator(Interpolator interpolator)
 	{
 		if(interpolator)
 		{
@@ -59,7 +59,7 @@ class Animation
 		}
 	}
 
-	final bool isRunning()
+	public final bool isRunning()
 	{
 		return m_isRunning;
 	}
@@ -94,7 +94,7 @@ class RotateAnimation : TransformAnimation
 		m_endValue = endValue;
 	}
 
-	override void update(double progress)
+	override protected void updateProgress(double progress)
 	{
 		double newRotation = m_startValue + (m_endValue - m_startValue) * progress;
 		m_transformable.rotation = newRotation;
@@ -131,7 +131,7 @@ class TranslationAnimation : VectorTransformAnimation
 		super(transformable, duration, startValue, endValue);
 	}
 
-	override void update(double progress)
+	override protected void updateProgress(double progress)
 	{
 		m_transformable.position = getUpdatedVector(progress);
 	}
@@ -145,8 +145,64 @@ class ScaleAnimation : VectorTransformAnimation
 		super(transformable, duration, startValue, endValue);
 	}
 
-	override void update(double progress)
+	override protected void updateProgress(double progress)
 	{
 		m_transformable.scale = getUpdatedVector(progress);
 	}
+}
+
+unittest
+{
+	import std.stdio;
+	writeln("Testing TranslationAnimation...");
+
+	auto sprite = new Sprite();
+	sprite.position = Vector2f(0, 0);
+
+	Time transDuration = seconds(2.0);
+
+	auto trasnlateAnim = new TranslationAnimation(sprite, transDuration,
+		sprite.position, Vector2f(100, 100));
+
+	trasnlateAnim.update(seconds(.5));
+	writeln();
+	assert(sprite.position == Vector2f(25, 25));
+
+	trasnlateAnim.update(seconds(1));
+	assert(sprite.position == Vector2f(75, 75));
+
+	trasnlateAnim.update(seconds(.5));
+	assert(sprite.position == Vector2f(100, 100));
+	assert(!trasnlateAnim.isRunning());
+
+	writeln("Testing ScaleAnimation...");
+
+	auto scaleAnim = new ScaleAnimation(sprite, transDuration,
+		sprite.scale, Vector2f(10, 10));
+
+	scaleAnim.update(seconds(.5));
+	assert(sprite.scale == Vector2f(2.5, 2.5));
+
+	scaleAnim.update(seconds(1));
+	assert(sprite.scale == Vector2f(7.5, 7.5));
+
+	scaleAnim.update(seconds(.5));
+	assert(sprite.scale == Vector2f(10, 10));
+	assert(!scaleAnim.isRunning());
+
+	writeln("Testing RotateAnimation...");
+
+	auto rotateAnim = new RotateAnimation(sprite, transDuration,
+		sprite.rotation, 180);
+
+	rotateAnim.update(seconds(.5));
+	assert(sprite.rotation == 45);
+
+	rotateAnim.update(seconds(1));
+	assert(sprite.rotation == 135);
+
+	rotateAnim.update(seconds(.5));
+	assert(sprite.rotation == 180);
+	assert(!rotateAnim.isRunning());
+
 }

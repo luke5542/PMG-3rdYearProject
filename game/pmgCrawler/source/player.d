@@ -28,7 +28,7 @@ class Player : Sprite, Node
 	override void draw(RenderTarget target, RenderStates states)
 	{
 		setTexture(m_sheet.getTexture());
-		textureRect = m_sheet.getSpriteRect(0);
+		//textureRect = m_sheet.getSpriteRect(0);
 		super.draw(target, states);
 	}
 }

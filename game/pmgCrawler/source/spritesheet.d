@@ -7,12 +7,14 @@ import std.json;
 
 import dsfml.graphics;
 
+alias Rect!(long) LongRect;
+
 class SpriteSheet
 {
 	private
 	{
 		Texture m_sheet;
-		IntRect[] m_spriteRects;
+		LongRect[string] m_spriteFrames;
 	}
 
 	this()
@@ -25,17 +27,34 @@ class SpriteSheet
 	bool loadFromFile(in string metaDataFile)
 	{
 		//Load the files...
-		if (!m_sheet.loadFromFile(imageFile) || !exists(metaDataFile))
+		if (!exists(metaDataFile))
+		{
+        	debug writeln("spritesheet meta data file, ", metaDataFile, ", doesn't exist.");
             return false;
+		}
 
         string metaData = chomp(readText(metaDataFile));
         JSONValue metaJson = parseJSON(metaData);
-        debug writeln("Parsing JSON: " ~ metaJson.toString());
+        debug writeln("Parsing JSON: ", metaJson.toString());
 
-        auto spriteFrames = metaJson["frames"];
-        for(val; spriteFrames)
+        auto spriteFrames = metaJson["frames"].array;
+        foreach(val; spriteFrames)
         {
-        	
+        	string name = val["filename"].str;
+        	JSONValue rectJson = val["frame"];
+        	LongRect rect = LongRect( rectJson["x"].integer, rectJson["y"].integer,
+        						    rectJson["w"].integer, rectJson["h"].integer);
+
+        	m_spriteFrames[name] = rect;
+        }
+
+        string imageFile = metaJson["meta"]["image"].str;
+        debug writeln("Loading image file from: ", imageFile);
+
+        if (!m_sheet.loadFromFile(imageFile))
+        {
+        	debug writeln("Image, ", imageFile, ", not loaded into texture.");
+        	return false;
         }
 
         return true;
@@ -46,14 +65,17 @@ class SpriteSheet
 		return m_sheet;
 	}
 
-	IntRect getSpriteRect(const(uint) sprite)
+	LongRect getSpriteRect(const(string) spriteName)
 	{
-		return m_spriteRects[sprite];
+		return m_spriteFrames[spriteName];
 	}
 }
 
 unittest
 {
+	writeln("Testing SpriteSheets");
+
 	SpriteSheet sheet = new SpriteSheet();
-	sheet.loadFromFile("tiles_spritesheet");
+	assert(sheet.loadFromFile("tiles_spritesheet.json"));
+	assert(sheet.getSpriteRect("ground-empty.png") == LongRect(2, 2, 32, 32));
 }

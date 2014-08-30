@@ -9,7 +9,7 @@
             "name":"unittests",
             "platforms": ["linux"],
             "targetType":"executable",
-            "buildOptions":["unittests"],
+            "buildOptions":["debugMode", "unittests"],
             "lflags-linux": ["-Llibs", "-R."],
             "dependencies":
             {

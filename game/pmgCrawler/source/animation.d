@@ -1,5 +1,7 @@
 module ridgway.pmgcrawler.animation;
 
+import std.stdio;
+
 import dsfml.system;
 import dsfml.graphics;
 
@@ -20,6 +22,7 @@ class Animation
 	{
 		m_duration = duration;
 		m_interpolator = new LinearInterpolator();
+		m_isRunning = true;
 	}
 
 	/// This is called with the value (0-1) of the
@@ -31,8 +34,9 @@ class Animation
 	{
 		if(m_isRunning)
 		{
-			m_progress = m_progress + deltaTime;
-			double progress = m_progress.asMilliseconds() / m_duration.asMilliseconds();
+
+			m_progress += deltaTime;
+			double progress = cast(double)(m_progress.asMicroseconds()) / m_duration.asMicroseconds();
 			if(progress >= 1)
 			{
 				progress = 1.0;
@@ -119,7 +123,7 @@ class VectorTransformAnimation : TransformAnimation
 
 	Vector2f getUpdatedVector(double progress)
 	{
-		return (m_startValue + (m_endValue - m_startValue) * progress);
+		return (m_startValue + ((m_endValue - m_startValue) * progress));
 	}
 }
 
@@ -165,7 +169,6 @@ unittest
 		sprite.position, Vector2f(100, 100));
 
 	trasnlateAnim.update(seconds(.5));
-	writeln();
 	assert(sprite.position == Vector2f(25, 25));
 
 	trasnlateAnim.update(seconds(1));
@@ -174,6 +177,17 @@ unittest
 	trasnlateAnim.update(seconds(.5));
 	assert(sprite.position == Vector2f(100, 100));
 	assert(!trasnlateAnim.isRunning());
+
+	writeln("Translation Animation tests passed.");
+	writeln();
+}
+
+unittest
+{
+	auto sprite = new Sprite();
+	sprite.scale = Vector2f(0, 0);
+
+	Time transDuration = seconds(2.0);
 
 	writeln("Testing ScaleAnimation...");
 
@@ -190,6 +204,17 @@ unittest
 	assert(sprite.scale == Vector2f(10, 10));
 	assert(!scaleAnim.isRunning());
 
+	writeln("Scale Animation tests passed.");
+	writeln();
+}
+
+unittest
+{
+	auto sprite = new Sprite();
+	sprite.rotation = 0;
+
+	Time transDuration = seconds(2.0);
+
 	writeln("Testing RotateAnimation...");
 
 	auto rotateAnim = new RotateAnimation(sprite, transDuration,
@@ -205,4 +230,6 @@ unittest
 	assert(sprite.rotation == 180);
 	assert(!rotateAnim.isRunning());
 
+	writeln("Rotation Animation tests passed.");
+	writeln();
 }

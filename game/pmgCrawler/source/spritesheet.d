@@ -81,4 +81,7 @@ unittest
 	SpriteSheet sheet = new SpriteSheet();
 	assert(sheet.loadFromFile("assets/tiles_spritesheet.json"));
 	assert(sheet.getSpriteRect("ground-empty.png") == LongRect(2, 2, 32, 32));
+
+	writeln("Sprite Sheet tests passed.");
+	writeln();
 }

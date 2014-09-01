@@ -38,7 +38,7 @@ class SpriteSheet
 
         string metaData = chomp(readText(metaDataFile));
         JSONValue metaJson = parseJSON(metaData);
-        debug writeln("Parsing JSON: ", metaJson.toString());
+        debug writeln("Parsing JSON: ", metaJson);
 
         auto spriteFrames = metaJson["frames"].array;
         foreach(val; spriteFrames)
@@ -83,5 +83,95 @@ unittest
 	assert(sheet.getSpriteRect("ground-empty.png") == LongRect(2, 2, 32, 32));
 
 	writeln("Sprite Sheet tests passed.");
+	writeln();
+}
+
+struct SpriteFrameList
+{
+	private
+	{
+		SpriteFrame[] m_frames;
+		ulong m_duration;
+	}
+
+	bool loadFromFile(in string frameFile)
+	{
+		//Load the files...
+		if (!exists(frameFile))
+		{
+        	debug writeln("SpriteFrameSet data file, ", frameFile, ", doesn't exist.");
+            return false;
+		}
+
+        string metaData = chomp(readText(frameFile));
+        JSONValue metaJson = parseJSON(metaData);
+        debug writeln("Parsing JSON: ", metaJson);
+
+        auto spriteFrames = metaJson["frames"].array;
+        foreach(val; spriteFrames)
+        {
+        	string name = val["spritename"].str;
+
+        	// This is the duration of the frame in milliseconds.
+        	long duration = val["duration"].integer;
+        	m_duration += duration;
+
+        	m_frames ~= SpriteFrame(name, duration);
+        }
+
+        return true;
+	}
+
+	const(string) getFrame(in ulong progress)
+	{
+		ulong progressSum = 0;
+		foreach(frame; m_frames)
+		{
+			if((progress - progressSum) <= frame.duration)
+			{
+				return frame.spritename;
+			}
+			progressSum += frame.duration;
+		}
+
+		return null;
+	}
+
+	const(ulong) getDuration()
+	{
+		return m_duration;
+	}
+}
+
+private struct SpriteFrame
+{
+	public
+	{
+		const(string) spritename;
+		const(ulong) duration;
+	}
+
+	this(string name, ulong dur)
+	{
+		spritename = name;
+		duration = dur;
+	}
+}
+
+unittest
+{
+	writeln("Testing SpriteFrameList...");
+
+	auto frameList = SpriteFrameList();
+	frameList.loadFromFile("assets/player_sprite_frames.json");
+
+	assert(frameList.getDuration() == 400);
+	assert(frameList.getFrame(50) == "sprite1");
+	assert(frameList.getFrame(100) == "sprite1");
+	assert(frameList.getFrame(101) == "sprite2");
+	assert(frameList.getFrame(250) == "sprite3");
+	assert(frameList.getFrame(350) == "sprite4");
+
+	writeln("SpriteFrameList tests passed.");
 	writeln();
 }

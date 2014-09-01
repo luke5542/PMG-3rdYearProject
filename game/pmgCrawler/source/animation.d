@@ -69,6 +69,7 @@ class Animation
 	}
 }
 
+/// Base class for animations that act upon a transformable.
 class TransformAnimation : Animation
 {
 	protected
@@ -83,6 +84,7 @@ class TransformAnimation : Animation
 	}
 }
 
+/// Animates the transformable's rotation.
 class RotateAnimation : TransformAnimation
 {
 	protected
@@ -106,6 +108,33 @@ class RotateAnimation : TransformAnimation
 
 }
 
+unittest
+{
+	auto sprite = new Sprite();
+	sprite.rotation = 0;
+
+	Time transDuration = seconds(2.0);
+
+	writeln("Testing RotateAnimation...");
+
+	auto rotateAnim = new RotateAnimation(sprite, transDuration,
+		sprite.rotation, 180);
+
+	rotateAnim.update(seconds(.5));
+	assert(sprite.rotation == 45);
+
+	rotateAnim.update(seconds(1));
+	assert(sprite.rotation == 135);
+
+	rotateAnim.update(seconds(.5));
+	assert(sprite.rotation == 180);
+	assert(!rotateAnim.isRunning());
+
+	writeln("Rotation Animation tests passed.");
+	writeln();
+}
+
+/// Base class for animations that require Vector2f-based values.
 class VectorTransformAnimation : TransformAnimation
 {
 	protected
@@ -127,6 +156,7 @@ class VectorTransformAnimation : TransformAnimation
 	}
 }
 
+/// Animates the transformable's position
 class TranslationAnimation : VectorTransformAnimation
 {
 
@@ -138,20 +168,6 @@ class TranslationAnimation : VectorTransformAnimation
 	override protected void updateProgress(double progress)
 	{
 		m_transformable.position = getUpdatedVector(progress);
-	}
-}
-
-class ScaleAnimation : VectorTransformAnimation
-{
-
-	this(Transformable transformable, Time duration, Vector2f startValue, Vector2f endValue)
-	{
-		super(transformable, duration, startValue, endValue);
-	}
-
-	override protected void updateProgress(double progress)
-	{
-		m_transformable.scale = getUpdatedVector(progress);
 	}
 }
 
@@ -182,6 +198,21 @@ unittest
 	writeln();
 }
 
+/// Animates the transformable's scale.
+class ScaleAnimation : VectorTransformAnimation
+{
+
+	this(Transformable transformable, Time duration, Vector2f startValue, Vector2f endValue)
+	{
+		super(transformable, duration, startValue, endValue);
+	}
+
+	override protected void updateProgress(double progress)
+	{
+		m_transformable.scale = getUpdatedVector(progress);
+	}
+}
+
 unittest
 {
 	auto sprite = new Sprite();
@@ -208,28 +239,23 @@ unittest
 	writeln();
 }
 
-unittest
+/// Base class for animations that act upon a drawable.
+class DrawableAnimation : Animation
 {
-	auto sprite = new Sprite();
-	sprite.rotation = 0;
+	protected
+	{
+		Drawable m_drawable;
+	}
 
-	Time transDuration = seconds(2.0);
+	this(Drawable drawable, Time duration)
+	{
+		super(duration);
+		m_drawable = drawable;
+	}
 
-	writeln("Testing RotateAnimation...");
-
-	auto rotateAnim = new RotateAnimation(sprite, transDuration,
-		sprite.rotation, 180);
-
-	rotateAnim.update(seconds(.5));
-	assert(sprite.rotation == 45);
-
-	rotateAnim.update(seconds(1));
-	assert(sprite.rotation == 135);
-
-	rotateAnim.update(seconds(.5));
-	assert(sprite.rotation == 180);
-	assert(!rotateAnim.isRunning());
-
-	writeln("Rotation Animation tests passed.");
-	writeln();
+	override protected void updateProgress(double progress)
+	{
+		//m_drawable.position = getUpdatedVector(progress);
+	}
 }
+

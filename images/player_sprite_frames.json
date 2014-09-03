@@ -1,0 +1,20 @@
+{
+	"frames":[
+		{
+			"spritename": "sprite1",
+			"duration": 100
+		},
+		{
+			"spritename": "sprite2",
+			"duration": 100
+		},
+		{
+			"spritename": "sprite3",
+			"duration": 100
+		},
+		{
+			"spritename": "sprite4",
+			"duration": 100
+		}
+	]
+}

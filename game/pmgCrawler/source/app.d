@@ -167,9 +167,16 @@ class LifeGUI
 
 void main()
 {
-	debug writeln("Staring GUI...");
-    TileMapGUI gui = new TileMapGUI();
-    gui.run();
+    version(unittest)
+    {
+        writeln("Empty main for unittests...");
+    }
+    else
+    {
+        debug writeln("Staring GUI...");
+        TileMapGUI gui = new TileMapGUI();
+        gui.run();
+    }
 }
 
 

@@ -6,6 +6,7 @@ import dsfml.system;
 import dsfml.graphics;
 
 import ridgway.pmgcrawler.interpolator;
+import ridgway.pmgcrawler.spritesheet;
 
 class Animation
 {
@@ -239,23 +240,30 @@ unittest
 	writeln();
 }
 
-/// Base class for animations that act upon a drawable.
-class DrawableAnimation : Animation
+/// Base class for animations that act upon a sprite.
+class SpriteAnimation : Animation
 {
 	protected
 	{
-		Drawable m_drawable;
+		Sprite m_sprite;
+		SpriteSheet m_spriteSheet;
+		SpriteFrameList m_frameList;
 	}
 
-	this(Drawable drawable, Time duration)
+	this(Sprite sprite, Time duration, SpriteSheet spriteSheet, SpriteFrameList frameList)
 	{
 		super(duration);
-		m_drawable = drawable;
+		m_sprite = sprite;
+		m_spriteSheet = spriteSheet;
+		m_frameList = frameList;
 	}
 
 	override protected void updateProgress(double progress)
 	{
-		//m_drawable.position = getUpdatedVector(progress);
+		string currentTexStr = m_frameList.getFrame(cast(long)(m_frameList.getDuration() * progress));
+		IntRect currentTexRect = m_spriteSheet.getSpriteRect(currentTexStr);
+
+		m_sprite.textureRect = currentTexRect;
 	}
 }
 

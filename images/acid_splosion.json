@@ -10,7 +10,7 @@
 	"pivot": {"x":0.5,"y":0.5}
 },
 {
-	"filename": "acidgun_0.png",
+	"filename": "acidgun_1.png",
 	"frame": {"x":100,"y":0,"w":100,"h":100},
 	"rotated": true,
 	"trimmed": true,
@@ -19,7 +19,7 @@
 	"pivot": {"x":0.5,"y":0.5}
 },
 {
-	"filename": "acidgun_0.png",
+	"filename": "acidgun_2.png",
 	"frame": {"x":200,"y":0,"w":100,"h":100},
 	"rotated": true,
 	"trimmed": true,
@@ -28,7 +28,7 @@
 	"pivot": {"x":0.5,"y":0.5}
 },
 {
-	"filename": "acidgun_0.png",
+	"filename": "acidgun_3.png",
 	"frame": {"x":300,"y":0,"w":100,"h":100},
 	"rotated": true,
 	"trimmed": true,
@@ -37,7 +37,7 @@
 	"pivot": {"x":0.5,"y":0.5}
 },
 {
-	"filename": "acidgun_0.png",
+	"filename": "acidgun_4.png",
 	"frame": {"x":400,"y":0,"w":100,"h":100},
 	"rotated": true,
 	"trimmed": true,
@@ -46,7 +46,7 @@
 	"pivot": {"x":0.5,"y":0.5}
 },
 {
-	"filename": "acidgun_0.png",
+	"filename": "acidgun_5.png",
 	"frame": {"x":0,"y":100,"w":100,"h":100},
 	"rotated": true,
 	"trimmed": true,
@@ -55,7 +55,7 @@
 	"pivot": {"x":0.5,"y":0.5}
 },
 {
-	"filename": "acidgun_0.png",
+	"filename": "acidgun_6.png",
 	"frame": {"x":100,"y":100,"w":100,"h":100},
 	"rotated": true,
 	"trimmed": true,
@@ -64,7 +64,7 @@
 	"pivot": {"x":0.5,"y":0.5}
 },
 {
-	"filename": "acidgun_0.png",
+	"filename": "acidgun_7.png",
 	"frame": {"x":200,"y":100,"w":100,"h":100},
 	"rotated": true,
 	"trimmed": true,
@@ -73,7 +73,7 @@
 	"pivot": {"x":0.5,"y":0.5}
 },
 {
-	"filename": "acidgun_0.png",
+	"filename": "acidgun_8.png",
 	"frame": {"x":300,"y":100,"w":100,"h":100},
 	"rotated": true,
 	"trimmed": true,
@@ -82,7 +82,7 @@
 	"pivot": {"x":0.5,"y":0.5}
 },
 {
-	"filename": "acidgun_0.png",
+	"filename": "acidgun_9.png",
 	"frame": {"x":400,"y":100,"w":100,"h":100},
 	"rotated": true,
 	"trimmed": true,
@@ -91,7 +91,7 @@
 	"pivot": {"x":0.5,"y":0.5}
 },
 {
-	"filename": "acidgun_0.png",
+	"filename": "acidgun_10.png",
 	"frame": {"x":0,"y":200,"w":100,"h":100},
 	"rotated": true,
 	"trimmed": true,

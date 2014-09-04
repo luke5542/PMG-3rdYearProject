@@ -7,6 +7,7 @@
     "configurations":[
         {
             "name":"unittests",
+            "mainSourceFile":"app.d",
             "platforms": ["linux"],
             "targetType":"executable",
             "buildOptions":["debugMode", "unittests"],
@@ -36,6 +37,7 @@
         },
         {
             "name":"debug",
+            "mainSourceFile":"app.d",
             "platforms": ["linux"],
             "targetType":"executable",
             "buildOptions":["debugMode"],
@@ -65,6 +67,7 @@
         },
         {
             "name":"release",
+            "mainSourceFile":"app.d",
             "platforms": ["linux"],
             "targetType":"executable",
             "buildOptions":["releaseMode", "inline", "optimize"],

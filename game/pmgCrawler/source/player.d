@@ -11,12 +11,19 @@ class Player : Sprite, Node
 
 	private
 	{
-		SpriteSheet m_sheet;
+		SpriteAnimation m_anim;
 	}
 
-	this(SpriteSheet spriteSheet)
+	this(const(Texture) tex)
 	{
-		m_sheet = spriteSheet;
+		super(tex);
+	}
+
+	this(SpriteSheet spriteSheet, SpriteFrameList frameList)
+	{
+		this(spriteSheet.getTexture());
+		m_anim = new SpriteAnimation(this, spriteSheet, frameList);
+		runAnimation(m_anim);
 	}
 
 	void update(Time time)
@@ -27,8 +34,6 @@ class Player : Sprite, Node
 
 	override void draw(RenderTarget target, RenderStates states)
 	{
-		setTexture(m_sheet.getTexture());
-		//textureRect = m_sheet.getSpriteRect(0);
 		super.draw(target, states);
 	}
 }

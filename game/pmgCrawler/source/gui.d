@@ -10,6 +10,7 @@ import dsfml.window;
 import ridgway.pmgcrawler.map;
 import ridgway.pmgcrawler.constants;
 import ridgway.pmgcrawler.player;
+import ridgway.pmgcrawler.spritesheet;
 
 
 class TileMapGUI
@@ -52,7 +53,7 @@ class TileMapGUI
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         ];
 
-        //Player m_player;
+        Player m_player;
     }
 
     this()
@@ -72,7 +73,15 @@ class TileMapGUI
         tileMap.focusedTile = Vector2u(10, 10);
         tileMap.focusedLocation = Vector2i(400, 300);
 
-        //m_player = new Player();
+        //Load the necessary data for use with the Player's animations, and textures.
+        auto sheet = new SpriteSheet();
+		sheet.loadFromFile("assets/acid_splosion.json");
+
+		auto frameList = SpriteFrameList();
+		frameList.loadFromFile("assets/acid_splosion_sprite_frames.json");
+
+        m_player = new Player(sheet, frameList);
+        m_player.position = Vector2f(400, 300);
     }
 
     void run()
@@ -131,7 +140,7 @@ class TileMapGUI
     void update(ref RenderWindow window, Time time)
     {
 
-        //m_player.update(time);
+        m_player.update(time);
         tileMap.update(time);
     }
 
@@ -140,6 +149,7 @@ class TileMapGUI
         window.clear();
 
         tileMap.draw(window);
+        window.draw(m_player);
 
         window.display();
     }

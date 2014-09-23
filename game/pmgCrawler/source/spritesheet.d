@@ -61,12 +61,12 @@ class SpriteSheet
         return true;
 	}
 
-	Texture getTexture()
+	const(Texture) getTexture()
 	{
 		return m_sheet;
 	}
 
-	IntRect getSpriteRect(const(string) spriteName)
+	const(IntRect) getSpriteRect(const(string) spriteName)
 	{
 		return m_spriteFrames[spriteName];
 	}

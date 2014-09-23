@@ -8,6 +8,14 @@ import dsfml.graphics;
 import ridgway.pmgcrawler.interpolator;
 import ridgway.pmgcrawler.spritesheet;
 
+immutable int INFINITE = -1;
+
+enum RepeateMode
+{
+	REPEATE,
+	REVERSE
+}
+
 class Animation
 {
 	private
@@ -17,6 +25,12 @@ class Animation
 		bool m_isRunning;
 
 		Interpolator m_interpolator;
+
+		RepeateMode m_repeateMode;
+		int m_repeateCount;
+		int m_currentRunCount;
+
+		bool m_isReverse;
 	}
 
 	this(Time duration)
@@ -24,6 +38,9 @@ class Animation
 		m_duration = duration;
 		m_interpolator = new LinearInterpolator();
 		m_isRunning = true;
+
+		m_repeateMode = RepeateMode.REPEATE;
+		m_isReverse = false;
 	}
 
 	/// This is called with the value (0-1) of the
@@ -36,12 +53,65 @@ class Animation
 		if(m_isRunning)
 		{
 
-			m_progress += deltaTime;
+			if(m_isReverse)
+			{
+				m_progress -= deltaTime;
+			}
+			else
+			{
+				m_progress += deltaTime;
+			}
+
 			double progress = cast(double)(m_progress.asMicroseconds()) / m_duration.asMicroseconds();
 			if(progress >= 1)
 			{
-				progress = 1.0;
-				m_isRunning = false;
+				if(m_repeateCount != 0)
+				{
+					while(progress > 1)
+					{
+						progress -= 1;
+						++m_currentRunCount;
+					}
+
+					//Check that we are still in a valid animation frame...
+					if(m_repeateCount > 0 && m_repeateCount <= m_currentRunCount)
+					{
+						//We have run out of animation frames, so just leave this at the end animation...
+						final switch(m_repeateMode)
+						{
+							case RepeateMode.REPEATE:
+								//m_progress = Time();
+								progress = 1.0;
+								break;
+							case RepeateMode.REVERSE:
+								m_isReverse = !m_isReverse;
+								m_progress = microseconds(m_duration.asMicroseconds());
+								progress = m_repeateCount % 2 == 1 ? 1.0 - progress : progress;
+								break;
+						}
+						m_isRunning = false;
+					}
+					else
+					{
+						//We ARE in a valid animation frame, so update the status accordingly
+						final switch(m_repeateMode)
+						{
+							case RepeateMode.REPEATE:
+								m_progress = Time();
+								break;
+							case RepeateMode.REVERSE:
+								m_isReverse = !m_isReverse;
+								m_progress = microseconds(m_duration.asMicroseconds());
+								progress = m_currentRunCount % 2 == 1 ? 1.0 - progress : progress;
+								break;
+						}
+					}
+				}
+				else
+				{
+					progress = 1.0;
+					m_isRunning = false;
+				}
 			}
 
 			// interpolate the current progress value
@@ -67,6 +137,37 @@ class Animation
 	public final bool isRunning()
 	{
 		return m_isRunning;
+	}
+
+	/// This determines the style of our animation repeate
+	@property
+	{
+		RepeateMode repeateMode(RepeateMode mode)
+		{
+			m_repeateMode = mode;
+			return m_repeateMode;
+		}
+
+		RepeateMode repeateMode()
+		{
+			return m_repeateMode;
+		}
+	}
+
+	/// If the repeate count is negative, then we repeate infinitely.
+	/// Otherwise, we run the animation repeateCount number of times.
+	@property
+	{
+		int repeateCount(int count)
+		{
+			m_repeateCount = count;
+			return m_repeateCount;
+		}
+
+		int repeateCount()
+		{
+			return m_repeateCount;
+		}
 	}
 }
 
@@ -132,6 +233,58 @@ unittest
 	assert(!rotateAnim.isRunning());
 
 	writeln("Rotation Animation tests passed.");
+	writeln();
+}
+
+unittest
+{	
+	auto sprite = new Sprite();
+	sprite.rotation = 0;
+
+	Time transDuration = seconds(2.0);
+
+	writeln("Testing repeating animations.");
+
+	auto rotateAnim = new RotateAnimation(sprite, transDuration, 0, 180);
+	rotateAnim.repeateMode = RepeateMode.REPEATE;
+	rotateAnim.repeateCount = 1;
+
+	rotateAnim.update(seconds(2.0));
+	assert(sprite.rotation == 0);
+	assert(rotateAnim.isRunning());
+
+	rotateAnim.update(seconds(2.0));
+	assert(sprite.rotation == 180);
+	assert(!rotateAnim.isRunning());
+	writeln("Single repeate success.");
+
+	rotateAnim = new RotateAnimation(sprite, transDuration, 0, 180);
+	rotateAnim.repeateMode = RepeateMode.REPEATE;
+	rotateAnim.repeateCount = INFINITE;
+
+	rotateAnim.update(seconds(2.0));
+	assert(sprite.rotation == 0);
+	assert(rotateAnim.isRunning());
+
+	rotateAnim.update(seconds(200.0));
+	assert(sprite.rotation == 0);
+	assert(rotateAnim.isRunning());
+	writeln("Infinite repeate success.");
+
+	rotateAnim = new RotateAnimation(sprite, transDuration, 0, 180);
+	rotateAnim.repeateMode = RepeateMode.REVERSE;
+	rotateAnim.repeateCount = 1;
+
+	rotateAnim.update(seconds(2.0));
+	assert(sprite.rotation == 180);
+	assert(rotateAnim.isRunning());
+
+	rotateAnim.update(seconds(2.0));
+	assert(sprite.rotation == 0);
+	assert(rotateAnim.isRunning());
+	writeln("Single reverse success.");
+
+	writeln("Animation repeating tests passed.");
 	writeln();
 }
 
@@ -250,9 +403,9 @@ class SpriteAnimation : Animation
 		SpriteFrameList m_frameList;
 	}
 
-	this(Sprite sprite, Time duration, SpriteSheet spriteSheet, SpriteFrameList frameList)
+	this(Sprite sprite, SpriteSheet spriteSheet, SpriteFrameList frameList)
 	{
-		super(duration);
+		super(milliseconds(cast(int) frameList.getDuration()));
 		m_sprite = sprite;
 		m_spriteSheet = spriteSheet;
 		m_frameList = frameList;

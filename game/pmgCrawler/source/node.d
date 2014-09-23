@@ -17,6 +17,7 @@ mixin template NormalNode()
 {
 	import ridgway.pmgcrawler.animation;
 	import std.algorithm;
+	debug import std.stdio;
 
 	private
 	{
@@ -29,6 +30,7 @@ mixin template NormalNode()
 		m_animations ~= anim;
 	}
 
+	/// Update the currently running animations.
 	void updateAnimations(Time time)
 	{
 		int[] itemsToRemove;
@@ -44,10 +46,16 @@ mixin template NormalNode()
 			}
 		}
 
-		if(itemsToRemove.length > 0)
+		if(m_animations.length == 1 && itemsToRemove.length == 1)
 		{
+			m_animations.length = 0;
+		}
+		else if(itemsToRemove.length > 0 && m_animations.length > 0)
+		{
+			debug writeln("Removing animation indices: ", itemsToRemove);
+
 			//Remove all the items designated for removal...
-			remove!(SwapStrategy.unstable)(m_animations, itemsToRemove);
+			m_animations = remove(m_animations, itemsToRemove);
 		}
 
 	}

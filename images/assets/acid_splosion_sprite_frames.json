@@ -1,0 +1,48 @@
+{
+	"frames":[
+		{
+			"spritename": "acidgun_0.png",
+			"duration": 50
+		},
+		{
+			"spritename": "acidgun_1.png",
+			"duration": 50
+		},
+		{
+			"spritename": "acidgun_2.png",
+			"duration": 50
+		},
+		{
+			"spritename": "acidgun_3.png",
+			"duration": 50
+		},
+		{
+			"spritename": "acidgun_4.png",
+			"duration": 50
+		},
+		{
+			"spritename": "acidgun_5.png",
+			"duration": 50
+		},
+		{
+			"spritename": "acidgun_6.png",
+			"duration": 50
+		},
+		{
+			"spritename": "acidgun_7.png",
+			"duration": 50
+		},
+		{
+			"spritename": "acidgun_8.png",
+			"duration": 50
+		},
+		{
+			"spritename": "acidgun_9.png",
+			"duration": 50
+		},
+		{
+			"spritename": "acidgun_10.png",
+			"duration": 50
+		}
+	]
+}

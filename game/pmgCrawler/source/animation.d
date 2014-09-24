@@ -63,13 +63,13 @@ class Animation
 			}
 
 			double progress = cast(double)(m_progress.asMicroseconds()) / m_duration.asMicroseconds();
-			if(progress >= 1)
+			if(progress >= 1.0)
 			{
 				if(m_repeateCount != 0)
 				{
-					while(progress > 1)
+					while(progress > 1.0)
 					{
-						progress -= 1;
+						progress -= 1.0;
 						++m_currentRunCount;
 					}
 
@@ -86,7 +86,7 @@ class Animation
 							case RepeateMode.REVERSE:
 								m_isReverse = !m_isReverse;
 								m_progress = microseconds(m_duration.asMicroseconds());
-								progress = m_repeateCount % 2 == 1 ? 1.0 - progress : progress;
+								progress = m_repeateCount % 2 == 1 ? 0.0 : 1.0;
 								break;
 						}
 						m_isRunning = false;
@@ -100,9 +100,10 @@ class Animation
 								m_progress = microseconds(m_progress.asMicroseconds() % m_duration.asMicroseconds());
 								break;
 							case RepeateMode.REVERSE:
-								m_isReverse = !m_isReverse;
-								m_progress = microseconds(m_duration.asMicroseconds());
-								progress = m_currentRunCount % 2 == 1 ? 1.0 - progress : progress;
+								m_isReverse = m_currentRunCount % 2 == 1;
+								m_progress = microseconds(m_progress.asMicroseconds() % m_duration.asMicroseconds());
+								progress = cast(double)(m_progress.asMicroseconds()) / m_duration.asMicroseconds();
+								progress = m_isReverse ? 1.0 - progress : progress;
 								break;
 						}
 						++m_currentRunCount;
@@ -317,7 +318,7 @@ unittest
 	rotateAnim.update(seconds(199.0));
 	assert(sprite.rotation == 180);
 	assert(rotateAnim.isRunning());
-	writeln("Infinite repeate success.");
+	writeln("Infinite reverse success.");
 
 	writeln("Animation repeating tests passed.");
 	writeln();
@@ -448,7 +449,9 @@ class SpriteAnimation : Animation
 
 	override protected void updateProgress(double progress)
 	{
+
 		string currentTexStr = m_frameList.getFrame(cast(long)(m_frameList.getDuration() * progress));
+		writeln("Setting animation frame: ", currentTexStr, ", for progress: ", progress);
 		IntRect currentTexRect = m_spriteSheet.getSpriteRect(currentTexStr);
 
 		m_sprite.textureRect = currentTexRect;

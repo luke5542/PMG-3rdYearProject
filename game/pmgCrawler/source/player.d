@@ -23,7 +23,7 @@ class Player : Sprite, Node
 	{
 		this(spriteSheet.getTexture());
 		m_anim = new SpriteAnimation(this, spriteSheet, frameList);
-		m_anim.repeateMode = RepeateMode.REPEATE;
+		m_anim.repeateMode = RepeateMode.REVERSE;
 		m_anim.repeateCount = INFINITE;
 		runAnimation(m_anim);
 	}

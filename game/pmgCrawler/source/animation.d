@@ -97,7 +97,7 @@ class Animation
 						final switch(m_repeateMode)
 						{
 							case RepeateMode.REPEATE:
-								m_progress = Time();
+								m_progress = microseconds(m_progress.asMicroseconds() % m_duration.asMicroseconds());
 								break;
 							case RepeateMode.REVERSE:
 								m_isReverse = !m_isReverse;
@@ -105,6 +105,7 @@ class Animation
 								progress = m_currentRunCount % 2 == 1 ? 1.0 - progress : progress;
 								break;
 						}
+						++m_currentRunCount;
 					}
 				}
 				else
@@ -250,10 +251,15 @@ unittest
 	rotateAnim.repeateCount = 1;
 
 	rotateAnim.update(seconds(2.0));
-	assert(sprite.rotation == 0);
+	assert(sprite.rotation == 180);
 	assert(rotateAnim.isRunning());
 
-	rotateAnim.update(seconds(2.0));
+	rotateAnim.update(seconds(1.0));
+	assert(sprite.rotation == 90);
+	assert(rotateAnim.isRunning());
+
+
+	rotateAnim.update(seconds(1.0));
 	assert(sprite.rotation == 180);
 	assert(!rotateAnim.isRunning());
 	writeln("Single repeate success.");
@@ -263,11 +269,19 @@ unittest
 	rotateAnim.repeateCount = INFINITE;
 
 	rotateAnim.update(seconds(2.0));
-	assert(sprite.rotation == 0);
+	assert(sprite.rotation == 180);
 	assert(rotateAnim.isRunning());
 
-	rotateAnim.update(seconds(200.0));
-	assert(sprite.rotation == 0);
+	rotateAnim.update(seconds(.5));
+	assert(sprite.rotation == 45);
+	assert(rotateAnim.isRunning());
+
+	rotateAnim.update(seconds(.5));
+	assert(sprite.rotation == 90);
+	assert(rotateAnim.isRunning());
+
+	rotateAnim.update(seconds(199.0));
+	assert(sprite.rotation == 180);
 	assert(rotateAnim.isRunning());
 	writeln("Infinite repeate success.");
 
@@ -283,6 +297,27 @@ unittest
 	assert(sprite.rotation == 0);
 	assert(rotateAnim.isRunning());
 	writeln("Single reverse success.");
+
+	rotateAnim = new RotateAnimation(sprite, transDuration, 0, 180);
+	rotateAnim.repeateMode = RepeateMode.REVERSE;
+	rotateAnim.repeateCount = INFINITE;
+
+	rotateAnim.update(seconds(2.0));
+	assert(sprite.rotation == 180);
+	assert(rotateAnim.isRunning());
+
+	rotateAnim.update(seconds(0.5));
+	assert(sprite.rotation == 135);
+	assert(rotateAnim.isRunning());
+
+	rotateAnim.update(seconds(0.5));
+	assert(sprite.rotation == 90);
+	assert(rotateAnim.isRunning());
+
+	rotateAnim.update(seconds(199.0));
+	assert(sprite.rotation == 180);
+	assert(rotateAnim.isRunning());
+	writeln("Infinite repeate success.");
 
 	writeln("Animation repeating tests passed.");
 	writeln();

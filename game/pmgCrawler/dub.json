@@ -7,7 +7,7 @@
     "configurations":[
         {
             "name":"unittests",
-            "mainSourceFile":"app.d",
+            "mainSourceFile":"source/app.d",
             "platforms": ["linux"],
             "targetType":"executable",
             "buildOptions":["debugMode", "unittests"],
@@ -34,10 +34,11 @@
             "postBuildCommands":["mkdir -p unittests/assets",
                     "cp -rf ../../images/unittest-assets/* unittests/assets/"],
             "targetPath": "unittests\\",
+            "workingDirectory":"unittests\\"
         },
         {
             "name":"debug",
-            "mainSourceFile":"app.d",
+            "mainSourceFile":"source/app.d",
             "platforms": ["linux"],
             "targetType":"executable",
             "buildOptions":["debugMode"],
@@ -64,10 +65,11 @@
             "postBuildCommands":["mkdir -p bin/debug/assets",
                     "cp -rf ../../images/assets/* bin/debug/assets/"],
             "targetPath": "bin\\debug\\",
+            "workingDirectory":"bin\\debug\\"
         },
         {
             "name":"release",
-            "mainSourceFile":"app.d",
+            "mainSourceFile":"source/app.d",
             "platforms": ["linux"],
             "targetType":"executable",
             "buildOptions":["releaseMode", "inline", "optimize"],
@@ -94,6 +96,7 @@
             "postBuildCommands":["mkdir -p bin/release/assets",
                     "cp -rf ../../images/assets/* bin/release/assets/"],
             "targetPath": "bin\\release\\",
+            "workingDirectory":"bin\\release\\"
         }
     ],
 }

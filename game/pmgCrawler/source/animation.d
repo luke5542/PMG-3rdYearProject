@@ -52,29 +52,21 @@ class Animation
 	{
 		if(m_isRunning)
 		{
-
-			if(m_isReverse)
-			{
-				m_progress -= deltaTime;
-			}
-			else
-			{
-				m_progress += deltaTime;
-			}
-
+			m_progress += deltaTime;
 			double progress = cast(double)(m_progress.asMicroseconds()) / m_duration.asMicroseconds();
+
 			if(progress >= 1.0)
 			{
 				if(m_repeateCount != 0)
 				{
-					while(progress > 1.0)
+					while(progress >= 1.0)
 					{
 						progress -= 1.0;
 						++m_currentRunCount;
 					}
 
 					//Check that we are still in a valid animation frame...
-					if(m_repeateCount > 0 && m_repeateCount <= m_currentRunCount)
+					if(m_repeateCount > 0 && m_repeateCount < m_currentRunCount)
 					{
 						//We have run out of animation frames, so just leave this at the end animation...
 						final switch(m_repeateMode)
@@ -84,9 +76,9 @@ class Animation
 								progress = 1.0;
 								break;
 							case RepeateMode.REVERSE:
-								m_isReverse = !m_isReverse;
+								m_isReverse = m_repeateCount % 2 == 0;
 								m_progress = microseconds(m_duration.asMicroseconds());
-								progress = m_repeateCount % 2 == 1 ? 0.0 : 1.0;
+								//progress = m_repeateCount % 2 == 1 ? 0.0 : 1.0;
 								break;
 						}
 						m_isRunning = false;
@@ -103,10 +95,10 @@ class Animation
 								m_isReverse = m_currentRunCount % 2 == 1;
 								m_progress = microseconds(m_progress.asMicroseconds() % m_duration.asMicroseconds());
 								progress = cast(double)(m_progress.asMicroseconds()) / m_duration.asMicroseconds();
-								progress = m_isReverse ? 1.0 - progress : progress;
+								//progress = m_isReverse ? 1.0 - progress : progress;
 								break;
 						}
-						++m_currentRunCount;
+						//++m_currentRunCount;
 					}
 				}
 				else
@@ -115,6 +107,8 @@ class Animation
 					m_isRunning = false;
 				}
 			}
+
+			progress = m_isReverse ? 1.0 - progress : progress;
 
 			// interpolate the current progress value
 			progress = m_interpolator.interpolate(progress);
@@ -251,8 +245,16 @@ unittest
 	rotateAnim.repeateMode = RepeateMode.REPEATE;
 	rotateAnim.repeateCount = 1;
 
-	rotateAnim.update(seconds(2.0));
-	assert(sprite.rotation == 180);
+	rotateAnim.update(seconds(1.0));
+	assert(sprite.rotation == 90);
+	assert(rotateAnim.isRunning());
+
+	rotateAnim.update(seconds(.5));
+	assert(sprite.rotation == 135);
+	assert(rotateAnim.isRunning());
+
+	rotateAnim.update(seconds(.5));
+	assert(sprite.rotation == 0);
 	assert(rotateAnim.isRunning());
 
 	rotateAnim.update(seconds(1.0));
@@ -269,8 +271,12 @@ unittest
 	rotateAnim.repeateMode = RepeateMode.REPEATE;
 	rotateAnim.repeateCount = INFINITE;
 
-	rotateAnim.update(seconds(2.0));
-	assert(sprite.rotation == 180);
+	rotateAnim.update(seconds(1.0));
+	assert(sprite.rotation == 90);
+	assert(rotateAnim.isRunning());
+
+	rotateAnim.update(seconds(1.0));
+	assert(sprite.rotation == 0);
 	assert(rotateAnim.isRunning());
 
 	rotateAnim.update(seconds(.5));
@@ -282,7 +288,7 @@ unittest
 	assert(rotateAnim.isRunning());
 
 	rotateAnim.update(seconds(199.0));
-	assert(sprite.rotation == 180);
+	assert(sprite.rotation == 0);
 	assert(rotateAnim.isRunning());
 	writeln("Infinite repeate success.");
 
@@ -290,13 +296,21 @@ unittest
 	rotateAnim.repeateMode = RepeateMode.REVERSE;
 	rotateAnim.repeateCount = 1;
 
-	rotateAnim.update(seconds(2.0));
+	rotateAnim.update(seconds(1.0));
+	assert(sprite.rotation == 90);
+	assert(rotateAnim.isRunning());
+
+	rotateAnim.update(seconds(1.0));
 	assert(sprite.rotation == 180);
 	assert(rotateAnim.isRunning());
 
-	rotateAnim.update(seconds(2.0));
-	assert(sprite.rotation == 0);
+	rotateAnim.update(seconds(1.0));
+	assert(sprite.rotation == 90);
 	assert(rotateAnim.isRunning());
+
+	rotateAnim.update(seconds(1.0));
+	assert(sprite.rotation == 0);
+	assert(!rotateAnim.isRunning());
 	writeln("Single reverse success.");
 
 	rotateAnim = new RotateAnimation(sprite, transDuration, 0, 180);
@@ -315,8 +329,28 @@ unittest
 	assert(sprite.rotation == 90);
 	assert(rotateAnim.isRunning());
 
-	rotateAnim.update(seconds(199.0));
+	rotateAnim.update(seconds(1.0));
+	assert(sprite.rotation == 0);
+	assert(rotateAnim.isRunning());
+
+	rotateAnim.update(seconds(.5));
+	assert(sprite.rotation == 45);
+	assert(rotateAnim.isRunning());
+
+	rotateAnim.update(seconds(1.5));
 	assert(sprite.rotation == 180);
+	assert(rotateAnim.isRunning());
+
+	rotateAnim.update(seconds(.5));
+	assert(sprite.rotation == 135);
+	assert(rotateAnim.isRunning());
+
+	rotateAnim.update(seconds(1.5));
+	assert(sprite.rotation == 0);
+	assert(rotateAnim.isRunning());
+
+	rotateAnim.update(seconds(200.0));
+	assert(sprite.rotation == 0);
 	assert(rotateAnim.isRunning());
 	writeln("Infinite reverse success.");
 

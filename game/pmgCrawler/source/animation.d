@@ -16,6 +16,12 @@ enum RepeateMode
 	REVERSE
 }
 
+enum AnimationSetMode
+{
+	PARALLEL,
+	SEQUENTIAL
+}
+
 class Animation
 {
 	private
@@ -489,6 +495,49 @@ class SpriteAnimation : Animation
 		IntRect currentTexRect = m_spriteSheet.getSpriteRect(currentTexStr);
 
 		m_sprite.textureRect = currentTexRect;
+	}
+}
+
+///For now, all this class does is run a bunch of animations simultaneously.
+class AnimationSet
+{
+	private
+	{
+		Animation[] m_anims;
+		int m_currentAnim;
+
+		AnimationSetMode m_mode;
+	}
+
+	this(Animation[] anims...)
+	{
+		m_anims = anims;
+		m_mode = AnimationSetMode.PARALLEL;
+	}
+
+	void setMode(AnimationSetMode mode)
+	{
+		m_mode = mode;
+	}
+
+	final void update(Time deltaT)
+	{
+		final switch(m_mode)
+		{
+			case AnimationSetMode.PARALLEL:
+				foreach(anim; m_anims)
+				{
+					anim.update(deltaT);
+				}
+				break;
+			case AnimationSetMode.SEQUENTIAL:
+				m_anims[m_currentAnim].update(deltaT);
+				if(!m_anims[m_currentAnim].isRunning())
+				{
+					m_currentAnim++;
+				}
+				break;
+		}
 	}
 }
 

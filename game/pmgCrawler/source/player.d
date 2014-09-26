@@ -12,6 +12,8 @@ class Player : Sprite, Node
 	private
 	{
 		SpriteAnimation m_anim;
+		//AnimationSet m_anim;
+		Drawable m_pulseOverlay;
 	}
 
 	this(const(Texture) tex)

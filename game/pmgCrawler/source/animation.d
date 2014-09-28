@@ -485,7 +485,7 @@ class SpriteAnimation : Animation
 	{
 
 		string currentTexStr = m_frameList.getFrame(cast(long)(m_frameList.getDuration() * progress));
-		writeln("Setting animation frame: ", currentTexStr, ", for progress: ", progress);
+		//writeln("Setting animation frame: ", currentTexStr, ", for progress: ", progress);
 		IntRect currentTexRect = m_spriteSheet.getSpriteRect(currentTexStr);
 
 		m_sprite.textureRect = currentTexRect;

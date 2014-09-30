@@ -507,12 +507,14 @@ class AnimationSet
 		int m_currentAnim;
 
 		AnimationSetMode m_mode;
+		bool m_isRunning;
 	}
 
 	this(Animation[] anims...)
 	{
 		m_anims = anims;
 		m_mode = AnimationSetMode.PARALLEL;
+		m_isRunning = true;
 	}
 
 	void setMode(AnimationSetMode mode)
@@ -522,22 +524,111 @@ class AnimationSet
 
 	final void update(Time deltaT)
 	{
-		final switch(m_mode)
+		if(m_isRunning)
 		{
-			case AnimationSetMode.PARALLEL:
-				foreach(anim; m_anims)
-				{
-					anim.update(deltaT);
-				}
-				break;
-			case AnimationSetMode.SEQUENTIAL:
-				m_anims[m_currentAnim].update(deltaT);
-				if(!m_anims[m_currentAnim].isRunning())
-				{
-					m_currentAnim++;
-				}
-				break;
+			final switch(m_mode)
+			{
+				case AnimationSetMode.PARALLEL:
+					m_isRunning = false;
+					foreach(anim; m_anims)
+					{
+						anim.update(deltaT);
+						m_isRunning = anim.isRunning() || m_isRunning;
+					}
+					break;
+				case AnimationSetMode.SEQUENTIAL:
+					m_anims[m_currentAnim].update(deltaT);
+					if(!m_anims[m_currentAnim].isRunning())
+					{
+						m_currentAnim++;
+						m_isRunning = m_currentAnim < m_anims.length;
+					}
+					break;
+			}
 		}
+	}
+
+	bool isRunning()
+	{
+		return m_isRunning;
 	}
 }
 
+unittest
+{
+	auto sprite = new Sprite();
+	sprite.scale = Vector2f(0, 0);
+
+	Time transDuration = seconds(2.0);
+
+	writeln("Testing Parallel AnimationSet...");
+	auto scaleAnim = new ScaleAnimation(sprite, transDuration,
+		sprite.scale, Vector2f(10, 10));
+
+	auto translateAnim = new TranslationAnimation(sprite, transDuration,
+		sprite.position, Vector2f(100, 100));
+
+	auto animSet = new AnimationSet(scaleAnim, translateAnim);
+
+	animSet.update(seconds(.5));
+	assert(sprite.scale == Vector2f(2.5, 2.5));
+	assert(sprite.position == Vector2f(25, 25));
+
+	animSet.update(seconds(1));
+	assert(sprite.scale == Vector2f(7.5, 7.5));
+	assert(sprite.position == Vector2f(75, 75));
+
+	animSet.update(seconds(.5));
+	assert(sprite.scale == Vector2f(10, 10));
+	assert(sprite.position == Vector2f(100, 100));
+	assert(!scaleAnim.isRunning());
+	assert(!translateAnim.isRunning());
+	assert(!animSet.isRunning());
+
+	writeln("Parallel AnimationSet tests passed.");
+	writeln();
+}
+
+unittest
+{
+	writeln("Testing Sequential AnimationSet...");
+	auto sprite = new Sprite();
+	sprite.scale = Vector2f(0, 0);
+
+	Time transDuration = seconds(2.0);
+
+	auto scaleAnim = new ScaleAnimation(sprite, transDuration,
+		sprite.scale, Vector2f(10, 10));
+
+	auto translateAnim = new TranslationAnimation(sprite, transDuration,
+		sprite.position, Vector2f(100, 100));
+
+	auto animSet = new AnimationSet(scaleAnim, translateAnim);
+	animSet.setMode(AnimationSetMode.SEQUENTIAL);
+
+	animSet.update(seconds(.5));
+	assert(sprite.scale == Vector2f(2.5, 2.5));
+
+	animSet.update(seconds(1));
+	assert(sprite.scale == Vector2f(7.5, 7.5));
+
+	animSet.update(seconds(.5));
+	assert(sprite.scale == Vector2f(10, 10));
+	assert(!scaleAnim.isRunning());
+
+	//The translation animation should get run now...
+	animSet.update(seconds(.5));
+	assert(sprite.position == Vector2f(25, 25));
+
+	animSet.update(seconds(1));
+	assert(sprite.position == Vector2f(75, 75));
+
+	animSet.update(seconds(.5));
+	assert(sprite.position == Vector2f(100, 100));
+
+	assert(!translateAnim.isRunning());
+	assert(!animSet.isRunning());
+
+	writeln("Sequential AnimationSet tests passed.");
+	writeln();
+}

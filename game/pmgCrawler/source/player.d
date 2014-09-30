@@ -5,29 +5,37 @@ import dsfml.graphics;
 import ridgway.pmgcrawler.spritesheet;
 import ridgway.pmgcrawler.node;
 
-class Player : Sprite, Node
+class Player : CircleShape, Node
 {
 	mixin NormalNode;
 
 	private
 	{
-		SpriteAnimation m_anim;
-		//AnimationSet m_anim;
-		Drawable m_pulseOverlay;
+		//SpriteAnimation m_anim;
+		AnimationSet m_anim;
+		CircleShape m_pulseOverlay;
 	}
 
-	this(const(Texture) tex)
-	{
-		super(tex);
-	}
+	//this(const(Texture) tex)
+	//{
+	//	super(tex);
+	//}
 
-	this(SpriteSheet spriteSheet, SpriteFrameList frameList)
+	//this(SpriteSheet spriteSheet, SpriteFrameList frameList)
+	//{
+	//	this(spriteSheet.getTexture());
+	//	m_anim = new SpriteAnimation(this, spriteSheet, frameList);
+	//	m_anim.repeateMode = RepeateMode.REVERSE;
+	//	m_anim.repeateCount = INFINITE;
+	//	runAnimation(m_anim);
+	//}
+
+	this()
 	{
-		this(spriteSheet.getTexture());
-		m_anim = new SpriteAnimation(this, spriteSheet, frameList);
-		m_anim.repeateMode = RepeateMode.REVERSE;
-		m_anim.repeateCount = INFINITE;
-		runAnimation(m_anim);
+		super(32);
+		m_pulseOverlay = new CircleShape(30);
+
+		
 	}
 
 	void update(Time time)

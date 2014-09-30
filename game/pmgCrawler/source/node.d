@@ -8,7 +8,7 @@ import ridgway.pmgcrawler.animation;
 
 interface Node
 {
-	void runAnimation(Animation anim);
+	void runAnimation(Animatable anim);
 	void updateAnimations(Time time);
 	void update(Time time);
 }
@@ -21,11 +21,11 @@ mixin template NormalNode()
 
 	private
 	{
-		Animation[] m_animations;
+		Animatable[] m_animations;
 	}
 
 	/// Add the animation to the queue
-	void runAnimation(Animation anim)
+	void runAnimation(Animatable anim)
 	{
 		m_animations ~= anim;
 	}
@@ -46,7 +46,7 @@ mixin template NormalNode()
 			}
 		}
 
-		if(m_animations.length == 1 && itemsToRemove.length == 1)
+		if(itemsToRemove.length == m_animations.length)
 		{
 			m_animations.length = 0;
 		}

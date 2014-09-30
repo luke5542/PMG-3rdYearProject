@@ -22,7 +22,14 @@ enum AnimationSetMode
 	SEQUENTIAL
 }
 
-class Animation
+interface Animatable
+{
+	protected void updateProgress(double progress);
+	public void update(Time deltaTime);
+	public bool isRunning();
+}
+
+class Animation : Animatable
 {
 	private
 	{
@@ -78,13 +85,11 @@ class Animation
 						final switch(m_repeateMode)
 						{
 							case RepeateMode.REPEATE:
-								//m_progress = Time();
 								progress = 1.0;
 								break;
 							case RepeateMode.REVERSE:
 								m_isReverse = m_repeateCount % 2 == 0;
 								m_progress = microseconds(m_duration.asMicroseconds());
-								//progress = m_repeateCount % 2 == 1 ? 0.0 : 1.0;
 								break;
 						}
 						m_isRunning = false;
@@ -101,10 +106,8 @@ class Animation
 								m_isReverse = m_currentRunCount % 2 == 1;
 								m_progress = microseconds(m_progress.asMicroseconds() % m_duration.asMicroseconds());
 								progress = cast(double)(m_progress.asMicroseconds()) / m_duration.asMicroseconds();
-								//progress = m_isReverse ? 1.0 - progress : progress;
 								break;
 						}
-						//++m_currentRunCount;
 					}
 				}
 				else
@@ -171,6 +174,47 @@ class Animation
 			return m_repeateCount;
 		}
 	}
+}
+
+class DelegateAnimation : Animation
+{
+	private
+	{
+		void delegate(double) m_update;
+	}
+
+	this(Time duration, void delegate(double) update)
+	{
+		super(duration);
+		m_update = update;
+	}
+
+	override protected void updateProgress(double progress)
+	{
+		m_update(progress);
+	}
+
+}
+
+unittest
+{
+	writeln("Testing DelegateAnimation...");
+
+	string helloWorld = "Hello World!";
+	void someFunc(double progress) { writeln("Yes, can access: ", helloWorld,
+									 ", with progress: ", progress); }
+
+	auto dur = seconds(2);
+
+	auto delAnim = new DelegateAnimation(dur, &someFunc);
+	delAnim.update(seconds(.5));
+	delAnim.update(seconds(.5));
+	delAnim.update(seconds(.5));
+	delAnim.update(seconds(.5));
+	assert(!delAnim.isRunning());
+
+	writeln("DelegateAnimation tests passed!");
+	writeln();
 }
 
 /// Base class for animations that act upon a transformable.
@@ -499,7 +543,7 @@ class SpriteAnimation : Animation
 }
 
 ///For now, all this class does is run a bunch of animations simultaneously.
-class AnimationSet
+class AnimationSet : Animatable
 {
 	private
 	{
@@ -521,6 +565,9 @@ class AnimationSet
 	{
 		m_mode = mode;
 	}
+
+	//Does nothing because this doesn't need it...
+	final void updateProgress(double progress) {};
 
 	final void update(Time deltaT)
 	{
@@ -548,7 +595,7 @@ class AnimationSet
 		}
 	}
 
-	bool isRunning()
+	final bool isRunning()
 	{
 		return m_isRunning;
 	}

@@ -74,13 +74,13 @@ class TileMapGUI
         tileMap.focusedLocation = Vector2i(400, 300);
 
         //Load the necessary data for use with the Player's animations, and textures.
-        auto sheet = new SpriteSheet();
-		sheet.loadFromFile("assets/acid_splosion.json");
+        //auto sheet = new SpriteSheet();
+		//sheet.loadFromFile("assets/acid_splosion.json");
 
-		auto frameList = SpriteFrameList();
-		frameList.loadFromFile("assets/acid_splosion_sprite_frames.json");
+		//auto frameList = SpriteFrameList();
+		//frameList.loadFromFile("assets/acid_splosion_sprite_frames.json");
 
-        m_player = new Player(sheet, frameList);
+        m_player = new Player();
         m_player.position = Vector2f(400, 300);
     }
 

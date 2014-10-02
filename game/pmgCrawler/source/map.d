@@ -26,6 +26,8 @@ class TileMap : Drawable, Transformable, Node
         Vector2u m_focusedTile;
 
         Vector2i m_tileCenter;
+
+        const(int)[] m_tiles;
     }
 
     this()
@@ -44,6 +46,7 @@ class TileMap : Drawable, Transformable, Node
 
         m_size = Vector2u(width, height);
         m_tileSize = tileSize;
+        m_tiles = tiles;
 
         //Initialize the location variables
         this.origin = Vector2f(0, 0);//Vector2f((width * tileSize.x) / 2, (height * tileSize.y) / 2);
@@ -58,7 +61,7 @@ class TileMap : Drawable, Transformable, Node
             for (uint j = 0; j < height; ++j)
             {
                 // get the current tile number
-                int tileNumber = tiles[i + j * width];
+                int tileNumber = m_tiles[i + j * width];
 
                 // find its position in the tileset texture
                 int tu = tileNumber % (m_tileset.getSize().x / tileSize.x);
@@ -92,7 +95,7 @@ class TileMap : Drawable, Transformable, Node
     {   
         Vector2u focusedTile(Vector2u newFocus)
         {
-            if(newFocus.x > m_size.x || newFocus.y > m_size.y)
+            if(newFocus.x >= m_size.x || newFocus.y >= m_size.y)
             {
                 //m_focusedTile = Vector2u(0, 0);
                 writeln("Error: Trying to exceed tile size! " ~ newFocus.toString());
@@ -134,13 +137,21 @@ class TileMap : Drawable, Transformable, Node
         }
     }
 
-    private void updateFocusLocation()
+    public bool isWalkable(Vector2u tile)
     {
-        this.position = Vector2f(m_tileCenter.x - cast(float)(m_focusedTile.x * m_tileSize.x) - (m_tileSize.x / 2),
-                                 m_tileCenter.y - cast(float)(m_focusedTile.y * m_tileSize.y) - (m_tileSize.y / 2));
+        if(tile.x >= m_size.x || tile.y >= m_size.y )
+        {
+            //m_focusedTile = Vector2u(0, 0);
+            writeln("Error: Trying to exceed tile size! ", tile);
+            return false;
+        }
 
-        debug writeln("New location: " ~ position.toString());
+        int tileNum = m_tiles[tile.x + tile.y * m_size.x];
+
+        //TODO improve this to work with any 'walkable' tiles...
+        return tileNum == 0;
     }
+
 
     /// This returns the tile map's size in units of tiles
     const(Vector2u) getSize()
@@ -163,8 +174,16 @@ class TileMap : Drawable, Transformable, Node
 
         // draw the vertex array
         target.draw(m_vertices, states);
+    }
 
+private:
 
+    void updateFocusLocation()
+    {
+        this.position = Vector2f(m_tileCenter.x - cast(float)(m_focusedTile.x * m_tileSize.x) - (m_tileSize.x / 2),
+                                 m_tileCenter.y - cast(float)(m_focusedTile.y * m_tileSize.y) - (m_tileSize.y / 2));
+
+        debug writeln("New location: " ~ position.toString());
     }
 }
 

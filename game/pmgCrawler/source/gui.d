@@ -54,6 +54,7 @@ class TileMapGUI
         ];
 
         Player m_player;
+        bool m_canMove;
     }
 
     this()
@@ -70,7 +71,6 @@ class TileMapGUI
             exit(1);
         }
 
-        tileMap.focusedTile = Vector2u(10, 10);
         tileMap.focusedLocation = Vector2i(400, 300);
 
         //Load the necessary data for use with the Player's animations, and textures.
@@ -82,6 +82,8 @@ class TileMapGUI
 
         m_player = new Player();
         m_player.position = Vector2f(400, 300);
+
+        m_canMove = false;
     }
 
     void run()
@@ -106,38 +108,22 @@ class TileMapGUI
                 	if(event.key.code == Keyboard.Key.Down)
                 	{
                 		writeln("Down arrow key pressed.");
-                		auto nextTile = tileMap.focusedTile + Vector2u(0, 1);
-                		if(tileMap.isWalkable(nextTile))
-                		{
-                			tileMap.focusedTile = nextTile;
-                		}
+                		tileMap.moveDown();
                 	}
                 	else if(event.key.code == Keyboard.Key.Up)
                 	{
                 		writeln("Up arrow key pressed.");
-                		auto nextTile = tileMap.focusedTile + Vector2u(0, -1);
-                		if(tileMap.isWalkable(nextTile))
-                		{
-                			tileMap.focusedTile = nextTile;
-                		}
+                		tileMap.moveUp();
                 	}
                 	else if(event.key.code == Keyboard.Key.Left)
                 	{
                 		writeln("Left arror key pressed.");
-                		auto nextTile = tileMap.focusedTile + Vector2u(-1, 0);
-                		if(tileMap.isWalkable(nextTile))
-                		{
-                			tileMap.focusedTile = nextTile;
-                		}
+                		tileMap.moveLeft();
                 	}
                 	else if(event.key.code == Keyboard.Key.Right)
                 	{
                 		writeln("Right arrow key pressed.");
-                		auto nextTile = tileMap.focusedTile + Vector2u(1, 0);
-                		if(tileMap.isWalkable(nextTile))
-                		{
-                			tileMap.focusedTile = nextTile;
-                		}
+                		tileMap.moveRight();
                 	}
                 	else if(event.key.code == Keyboard.Key.Escape)
                 	{

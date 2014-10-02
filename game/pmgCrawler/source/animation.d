@@ -29,6 +29,12 @@ interface Animatable
 	public bool isRunning();
 }
 
+interface UpdateListener
+{
+	void onAnimationEnd();
+	void onAnimationRepeate();
+}
+
 class Animation : Animatable
 {
 	private

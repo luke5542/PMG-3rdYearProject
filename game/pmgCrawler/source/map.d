@@ -28,6 +28,8 @@ class TileMap : Drawable, Transformable, Node
         Vector2i m_tileCenter;
 
         const(int)[] m_tiles;
+
+        bool m_canMove;
     }
 
     this()
@@ -36,6 +38,8 @@ class TileMap : Drawable, Transformable, Node
         m_tileCenter = Vector2i();
         m_focusedTile = Vector2u();
         m_tileSize = Vector2u();
+
+        m_canMove = true;
     }
 
     bool load(const(string) tileset, Vector2u tileSize, const(int[]) tiles, uint width, uint height)
@@ -91,31 +95,31 @@ class TileMap : Drawable, Transformable, Node
 
     /// This sets to currently focused tile in the tile map.
     /// It sets the position for this tile map, so don't manually set the position.
-    @property
-    {   
-        Vector2u focusedTile(Vector2u newFocus)
-        {
-            if(newFocus.x >= m_size.x || newFocus.y >= m_size.y)
-            {
-                //m_focusedTile = Vector2u(0, 0);
-                writeln("Error: Trying to exceed tile size! " ~ newFocus.toString());
-            }
-            else
-            {
-                m_focusedTile = newFocus;
-            }
+    //@property
+    //{   
+    //    Vector2u focusedTile(Vector2u newFocus)
+    //    {
+    //        if(newFocus.x >= m_size.x || newFocus.y >= m_size.y)
+    //        {
+    //            //m_focusedTile = Vector2u(0, 0);
+    //            writeln("Error: Trying to exceed tile size! " ~ newFocus.toString());
+    //        }
+    //        else
+    //        {
+    //            m_focusedTile = newFocus;
+    //        }
 
-            debug writeln("New focused tile: " ~ m_focusedTile.toString());
-            updateFocusLocation();
+    //        debug writeln("New focused tile: " ~ m_focusedTile.toString());
+    //        updateFocusLocation();
 
-            return m_focusedTile;
-        }
+    //        return m_focusedTile;
+    //    }
 
-        Vector2u focusedTile() const
-        {
-            return m_focusedTile;
-        }
-    }
+    //    Vector2u focusedTile() const
+    //    {
+    //        return m_focusedTile;
+    //    }
+    //}
 
     /// This sets the current location for the focused tile.
     /// It sets the position for this tile map, so don't manually set the position.
@@ -137,7 +141,7 @@ class TileMap : Drawable, Transformable, Node
         }
     }
 
-    public bool isWalkable(Vector2u tile)
+    bool isWalkable(Vector2u tile)
     {
         if(tile.x >= m_size.x || tile.y >= m_size.y )
         {
@@ -150,6 +154,26 @@ class TileMap : Drawable, Transformable, Node
 
         //TODO improve this to work with any 'walkable' tiles...
         return tileNum == 0;
+    }
+
+    void moveUp()
+    {
+        makeMove(Vector2u(0, -1));
+    }
+
+    void moveDown()
+    {
+        makeMove(Vector2u(0, 1));
+    }
+
+    void moveLeft()
+    {
+        makeMove(Vector2u(-1, 0));
+    }
+
+    void moveRight()
+    {
+        makeMove(Vector2u(1, 0));
     }
 
 
@@ -184,6 +208,33 @@ private:
                                  m_tileCenter.y - cast(float)(m_focusedTile.y * m_tileSize.y) - (m_tileSize.y / 2));
 
         debug writeln("New location: " ~ position.toString());
+    }
+
+    void animateFocusLocation()
+    {
+        auto nextLocation = Vector2f(m_tileCenter.x - cast(float)(m_focusedTile.x * m_tileSize.x) - (m_tileSize.x / 2),
+                                     m_tileCenter.y - cast(float)(m_focusedTile.y * m_tileSize.y) - (m_tileSize.y / 2));
+
+        auto trasnlateAnim = new TranslationAnimation(this, milliseconds(75), this.position, nextLocation);
+        runAnimation(trasnlateAnim);
+
+        debug writeln("New location: " ~ position.toString());
+    }
+
+    void makeMove(Vector2u direction)
+    {
+        if(m_canMove)
+        {
+            m_canMove = false;
+
+            auto nextTile = m_focusedTile + direction;
+            if(isWalkable(nextTile))
+            {
+                m_focusedTile = nextTile;
+                debug writeln("New focused location: ", m_tileCenter);
+                animateFocusLocation();
+            }
+        }
     }
 }
 

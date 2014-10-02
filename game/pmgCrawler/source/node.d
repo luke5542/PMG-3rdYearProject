@@ -46,18 +46,40 @@ mixin template NormalNode()
 			}
 		}
 
-		if(itemsToRemove.length == m_animations.length)
-		{
-			m_animations.length = 0;
-		}
-		else if(itemsToRemove.length > 0 && m_animations.length > 0)
-		{
-			debug writeln("Removing animation indices: ", itemsToRemove);
+		//if(itemsToRemove.length == m_animations.length)
+		//{
+		//	m_animations.length = 0;
+		//}
+		//else if(itemsToRemove.length > 0 && m_animations.length > 0)
+		//{
+		//	debug writeln("Removing animation indices: ", itemsToRemove);
 
-			//Remove all the items designated for removal...
-			m_animations = remove(m_animations, itemsToRemove);
+		//	//Remove all the items designated for removal...
+		//	m_animations = remove(m_animations, itemsToRemove);
+		//}
+
+		foreach(index; itemsToRemove)
+		{
+			removeAtUnstable(m_animations, index);
 		}
 
+	}
+
+	private static void removeAtUnstable(T)(ref T[] arr, size_t index)
+	{
+	    if(index >= arr.length)
+	    {
+	    	writeln("YA DOOF, index(", index, ") >= arr.length(", arr.length, ")");
+	    }
+	    else
+	    {
+	    	if(index != arr.length - 1)
+	    	{
+	    		arr[index] = arr[$-1];
+	    	}
+    		arr = arr[0 .. $-1];
+
+	    }
 	}
 
 }

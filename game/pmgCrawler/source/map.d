@@ -215,10 +215,11 @@ private:
         auto nextLocation = Vector2f(m_tileCenter.x - cast(float)(m_focusedTile.x * m_tileSize.x) - (m_tileSize.x / 2),
                                      m_tileCenter.y - cast(float)(m_focusedTile.y * m_tileSize.y) - (m_tileSize.y / 2));
 
-        auto trasnlateAnim = new TranslationAnimation(this, milliseconds(75), this.position, nextLocation);
+        auto trasnlateAnim = new TranslationAnimation(this, milliseconds(100), this.position, nextLocation);
+        trasnlateAnim.addUpdateListener(new MapAnimUpdateListener);
         runAnimation(trasnlateAnim);
 
-        debug writeln("New location: " ~ position.toString());
+        debug writeln("New location: ", position);
     }
 
     void makeMove(Vector2u direction)
@@ -234,6 +235,25 @@ private:
                 debug writeln("New focused location: ", m_tileCenter);
                 animateFocusLocation();
             }
+            else
+            {
+                m_canMove = true;
+            }
+        }
+    }
+
+    class MapAnimUpdateListener : UpdateListener
+    {
+        void onAnimationEnd()
+        {
+            //just reset the canMove status
+            m_canMove = true;
+        }
+
+        void onAnimationRepeate()
+        {
+            //Do nothing, this shouldn't get called
+            writeln("This is getting called.... STOP IT!!!");
         }
     }
 }

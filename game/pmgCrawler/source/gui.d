@@ -59,11 +59,12 @@ class TileMapGUI
 
     this()
     {
-        window = new RenderWindow(/*VideoMode.getDesktopMode()*/VideoMode(800,600), "PMG Crawler");
+    	auto settings = ContextSettings();
+    	settings.antialiasingLevel = 8;
+        window = new RenderWindow(/*VideoMode.getDesktopMode()*/VideoMode(800,600), "PMG Crawler", Window.Style.DefaultStyle, settings);
         //window.setFramerateLimit(3);
 
         debug writeln("Loading tile map");
-        //tileMap = new TileMap(Vector2i(60, 60));
         tileMap = new TileMap();
         if(!tileMap.load(TILE_MAP_LOC, Vector2u(32, 32), level, 20, 20))
         {
@@ -105,27 +106,27 @@ class TileMapGUI
                 }
                 else if(event.type == Event.EventType.KeyPressed)
                 {
-                	if(event.key.code == Keyboard.Key.Down)
-                	{
-                		writeln("Down arrow key pressed.");
-                		tileMap.moveDown();
-                	}
-                	else if(event.key.code == Keyboard.Key.Up)
-                	{
-                		writeln("Up arrow key pressed.");
-                		tileMap.moveUp();
-                	}
-                	else if(event.key.code == Keyboard.Key.Left)
-                	{
-                		writeln("Left arror key pressed.");
-                		tileMap.moveLeft();
-                	}
-                	else if(event.key.code == Keyboard.Key.Right)
-                	{
-                		writeln("Right arrow key pressed.");
-                		tileMap.moveRight();
-                	}
-                	else if(event.key.code == Keyboard.Key.Escape)
+                	//if(event.key.code == Keyboard.Key.Down)
+                	//{
+                	//	writeln("Down arrow key pressed.");
+                	//	tileMap.moveDown();
+                	//}
+                	//else if(event.key.code == Keyboard.Key.Up)
+                	//{
+                	//	writeln("Up arrow key pressed.");
+                	//	tileMap.moveUp();
+                	//}
+                	//else if(event.key.code == Keyboard.Key.Left)
+                	//{
+                	//	writeln("Left arror key pressed.");
+                	//	tileMap.moveLeft();
+                	//}
+                	//else if(event.key.code == Keyboard.Key.Right)
+                	//{
+                	//	writeln("Right arrow key pressed.");
+                	//	tileMap.moveRight();
+                	//}
+                	if(event.key.code == Keyboard.Key.Escape)
                 	{
                 		exit(0);
                 	}
@@ -141,6 +142,26 @@ class TileMapGUI
 
     void update(ref RenderWindow window, Time time)
     {
+    	if(Keyboard.isKeyPressed(Keyboard.Key.Down))
+    	{
+    		debug writeln("Down arrow key pressed.");
+    		tileMap.moveDown();
+    	}
+    	else if(Keyboard.isKeyPressed(Keyboard.Key.Up))
+    	{
+    		debug writeln("Up arrow key pressed.");
+    		tileMap.moveUp();
+    	}
+    	else if(Keyboard.isKeyPressed(Keyboard.Key.Left))
+    	{
+    		debug writeln("Left arror key pressed.");
+    		tileMap.moveLeft();
+    	}
+    	else if(Keyboard.isKeyPressed(Keyboard.Key.Right))
+    	{
+    		debug writeln("Right arrow key pressed.");
+    		tileMap.moveRight();
+    	}
 
         m_player.update(time);
         tileMap.update(time);

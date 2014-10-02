@@ -5,6 +5,8 @@ import dsfml.graphics;
 import ridgway.pmgcrawler.spritesheet;
 import ridgway.pmgcrawler.node;
 
+immutable CHARACTER_SIZE = 13;
+
 class Player : CircleShape, Node
 {
 	mixin NormalNode;
@@ -32,10 +34,10 @@ class Player : CircleShape, Node
 
 	this()
 	{
-		super(16);
-		this.origin = Vector2f(16, 16);
+		super(CHARACTER_SIZE);
+		this.origin = Vector2f(CHARACTER_SIZE, CHARACTER_SIZE);
 		this.fillColor = Color(208, 176, 255, 100);
-		m_pulseOverlay = new CircleShape(16);
+		m_pulseOverlay = new CircleShape(CHARACTER_SIZE);
 		m_pulseOverlay.fillColor = Color(163, 25, 209, 200);
 
 		Time pulseAnimDur = seconds(1.75);

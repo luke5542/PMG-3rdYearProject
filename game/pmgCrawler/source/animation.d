@@ -50,6 +50,8 @@ class Animation : Animatable
 		int m_currentRunCount;
 
 		bool m_isReverse;
+
+		UpdateListener[] m_listeners;
 	}
 
 	this(Time duration)
@@ -67,7 +69,7 @@ class Animation : Animatable
 	protected abstract void updateProgress(double progress);
 
 	/// This takes the delta time since the last update call as the input.
-	public final void update(Time deltaTime)
+	final void update(Time deltaTime)
 	{
 		if(m_isRunning)
 		{
@@ -99,6 +101,7 @@ class Animation : Animatable
 								break;
 						}
 						m_isRunning = false;
+						sendOnAnimationEnd();
 					}
 					else
 					{
@@ -114,12 +117,15 @@ class Animation : Animatable
 								progress = cast(double)(m_progress.asMicroseconds()) / m_duration.asMicroseconds();
 								break;
 						}
+
+						sendOnAnimationRepeate();
 					}
 				}
 				else
 				{
 					progress = 1.0;
 					m_isRunning = false;
+					sendOnAnimationEnd();
 				}
 			}
 
@@ -133,7 +139,28 @@ class Animation : Animatable
 		}
 	}
 
-	public void setInterpolator(Interpolator interpolator)
+	void addUpdateListener(UpdateListener listener)
+	{
+		m_listeners ~= listener;
+	}
+
+	void sendOnAnimationEnd()
+	{
+		foreach(listener; m_listeners)
+		{
+			listener.onAnimationEnd();
+		}
+	}
+
+	void sendOnAnimationRepeate()
+	{
+		foreach(listener; m_listeners)
+		{
+			listener.onAnimationRepeate();
+		}
+	}
+
+	void setInterpolator(Interpolator interpolator)
 	{
 		if(interpolator)
 		{
@@ -145,7 +172,7 @@ class Animation : Animatable
 		}
 	}
 
-	public final bool isRunning()
+	final bool isRunning()
 	{
 		return m_isRunning;
 	}

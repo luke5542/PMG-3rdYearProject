@@ -165,7 +165,7 @@ class LifeGUI
 
 }
 
-void main()
+void main(string[] args)
 {
     version(unittest)
     {
@@ -173,9 +173,31 @@ void main()
     }
     else
     {
-        debug writeln("Staring GUI...");
-        TileMapGUI gui = new TileMapGUI();
-        gui.run();
+        if(args.length > 1)
+        {
+            foreach(i, s; args)
+            {
+                switch(s)
+                {
+                    case "-h":
+                        writeln(helpMessage);
+                        break;
+
+                    case "-perlin":
+                        writeln("Generating map.");
+                        string saveFile = args[i+1];
+                        generatePerlin(saveFile);
+                        break;
+                }
+            }
+        }
+        else
+        {
+            debug writeln("Staring GUI...");
+            TileMapGUI gui = new TileMapGUI();
+            gui.run();
+        }
+        
     }
 }
 
@@ -188,3 +210,13 @@ unittest
 	assert(1 == 1);
 
 }
+
+immutable string helpMessage = r"This program is designed to generate map levels and allow you to play them.
+
+Usage:
+
+<empty>: just play the game with the default map.
+
+-h: display this help message
+
+-perlin <output file>: generate a map via perlin noise, and save to the given file.";

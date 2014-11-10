@@ -1,6 +1,7 @@
 module ridgway.pmgcrawler.main;
 
 import std.stdio;
+import std.conv;
 
 import dsfml.system;
 import dsfml.graphics;
@@ -9,6 +10,7 @@ import dsfml.window;
 import ridgway.pmgcrawler.map;
 import ridgway.pmgcrawler.constants;
 import ridgway.pmgcrawler.gui;
+import ridgway.pmgcrawler.generators.perlingenerator;
 
 class LifeGUI
 {
@@ -175,20 +177,25 @@ void main(string[] args)
     {
         if(args.length > 1)
         {
-            foreach(i, s; args)
+            switch(args[1])
             {
-                switch(s)
-                {
-                    case "-h":
-                        writeln(helpMessage);
-                        break;
+                case "-h":
+                    writeln(helpMessage);
+                    break;
 
-                    case "-perlin":
-                        writeln("Generating map.");
-                        string saveFile = args[i+1];
-                        generatePerlin(saveFile);
-                        break;
-                }
+                case "-perlin":
+                    debug writeln("Generating map.");
+                    string saveFile = args[2];
+                    int size = to!int(args[3]);
+                    generatePerlin(saveFile, size);
+                    break;
+
+                default:
+                    //Just run the default game setup...
+                    debug writeln("Staring GUI...");
+                    TileMapGUI gui = new TileMapGUI();
+                    gui.run();
+                    break;
             }
         }
         else
@@ -213,10 +220,14 @@ unittest
 
 immutable string helpMessage = r"This program is designed to generate map levels and allow you to play them.
 
-Usage:
+Usage
+-----
 
-<empty>: just play the game with the default map.
+<empty>:
+  just play the game with the default map.
 
--h: display this help message
+-h:
+  display this help message
 
--perlin <output file>: generate a map via perlin noise, and save to the given file.";
+-perlin <output file> <size>:
+  generate a map, of given size, via perlin noise, and save to the given file.";

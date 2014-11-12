@@ -187,7 +187,8 @@ void main(string[] args)
                     debug writeln("Generating map.");
                     string saveFile = args[2];
                     int size = to!int(args[3]);
-                    generatePerlin(saveFile, size);
+                    bool threshold = to!bool(args[4]);
+                    generatePerlin(saveFile, size, threshold);
                     break;
 
                 default:

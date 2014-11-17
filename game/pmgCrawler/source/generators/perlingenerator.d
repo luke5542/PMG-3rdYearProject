@@ -6,14 +6,27 @@ import std.math;
 
 import dsfml.graphics;
 
-void generatePerlin(string outputFile, int size, bool threshold)
+string outFile;
+
+void generatePerlin(string outputFile, int size, bool threshold, bool use3DNoise)
 {
 	writeln("Map size:", size);
 	writeln("Save file: ", outputFile);
 
-	PerlinGenerator_3D pGen = new PerlinGenerator_3D(size, size, size, threshold);
-	//PerlinGenerator pGen = new PerlinGenerator(size, size, threshold);
-	Image image = pGen.generateImage();
+	outFile = outputFile;
+
+	Image image;
+	if(use3DNoise)
+	{
+		PerlinGenerator_3D pGen = new PerlinGenerator_3D(size, size, size, threshold);
+		image = pGen.generateImage();
+	}
+	else
+	{
+		PerlinGenerator pGen = new PerlinGenerator(size, size, threshold);
+		image = pGen.generateImage();
+	}
+	
 	if(image)
 	{
 		image.saveToFile(outputFile);
@@ -52,6 +65,7 @@ class PerlinGenerator
 			return null;
 		}
 
+		//Generate the final image...
 		foreach(i; 0..m_noiseWidth)
 		{
 			foreach(j; 0..m_noiseHeight)
@@ -61,6 +75,86 @@ class PerlinGenerator
 		}
 
 		return image;
+	}
+
+	void generateZooms()
+	{
+		generateNoise();
+
+		Image image = new Image();
+		if(!image.create(m_noiseWidth, m_noiseHeight, Color.Black))
+		{
+			return null;
+		}
+		
+		//Temporary stuff to print the demo images...
+		foreach(i; 0..m_noiseWidth)
+		{
+			foreach(j; 0..m_noiseHeight)
+			{
+				image.setPixel(i, j, getZoomPixelColor(i, j, 1));
+			}
+		}
+		image.saveToFile("zoom1.png");
+
+		foreach(i; 0..m_noiseWidth)
+		{
+			foreach(j; 0..m_noiseHeight)
+			{
+				image.setPixel(i, j, getZoomPixelColor(i, j, 2));
+			}
+		}
+		image.saveToFile("zoom2.png");
+
+		foreach(i; 0..m_noiseWidth)
+		{
+			foreach(j; 0..m_noiseHeight)
+			{
+				image.setPixel(i, j, getZoomPixelColor(i, j, 4));
+			}
+		}
+		image.saveToFile("zoom4.png");
+
+		foreach(i; 0..m_noiseWidth)
+		{
+			foreach(j; 0..m_noiseHeight)
+			{
+				image.setPixel(i, j, getZoomPixelColor(i, j, 8));
+			}
+		}
+		image.saveToFile("zoom8.png");
+
+		foreach(i; 0..m_noiseWidth)
+		{
+			foreach(j; 0..m_noiseHeight)
+			{
+				image.setPixel(i, j, getZoomPixelColor(i, j, 16));
+			}
+		}
+		image.saveToFile("zoom16.png");
+
+
+		//Generate the final image...
+		m_threshold = false;
+		foreach(i; 0..m_noiseWidth)
+		{
+			foreach(j; 0..m_noiseHeight)
+			{
+				image.setPixel(i, j, getPixelColor(i, j));
+			}
+		}
+		image.saveToFile("nonthresh.png");
+
+		//Generate the final image...
+		m_threshold = true;
+		foreach(i; 0..m_noiseWidth)
+		{
+			foreach(j; 0..m_noiseHeight)
+			{
+				image.setPixel(i, j, getPixelColor(i, j));
+			}
+		}
+		image.saveToFile("thresh.png");
 	}
 
 private:
@@ -85,7 +179,7 @@ private:
 		double yPeriod = 10;
 
 		double turbPower = 5;
-		double turbSize = 8;
+		double turbSize = 16;
 
 		/*double turbulence = x * xPeriod / m_noiseWidth
 							+ y * yPeriod / m_noiseHeight
@@ -95,7 +189,7 @@ private:
 		double turbulence = getTurbulence(x, y, turbSize);
 		if(m_threshold)
 		{
-			if(turbulence > (.40 * 255))
+			if(turbulence > (.50 * 255))
 			{
 				turbulence = 255;
 			}
@@ -104,6 +198,15 @@ private:
 				turbulence = 0;
 			}
 		}
+		
+		ubyte value = cast(ubyte) (turbulence);
+
+		return Color(value, value, value, 255);
+	}
+
+	Color getZoomPixelColor(double x, double y, double zoom)
+	{
+		double turbulence = getZoom(x, y, zoom);
 		
 		ubyte value = cast(ubyte) (turbulence);
 
@@ -143,6 +246,11 @@ private:
 		}
 
 		return 128 * val / initSize;
+	}
+
+	double getZoom(double x, double y, double zoomLevel)
+	{
+		return getNoiseValue(x / zoomLevel, y / zoomLevel) * 255;
 	}
 
 }

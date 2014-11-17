@@ -188,7 +188,8 @@ void main(string[] args)
                     string saveFile = args[2];
                     int size = to!int(args[3]);
                     bool threshold = to!bool(args[4]);
-                    generatePerlin(saveFile, size, threshold);
+                    bool use3D = to!bool(args[5]);
+                    generatePerlin(saveFile, size, threshold, use3D);
                     break;
 
                 default:

@@ -2,12 +2,16 @@ module ridgway.pmgcrawler.map;
 
 import std.random;
 import std.stdio;
+import std.math;
 
 import dsfml.system;
 import dsfml.graphics;
 
 import ridgway.pmgcrawler.tile;
 import ridgway.pmgcrawler.node;
+
+immutable ENTRANCE = 30;
+immutable EXIT = 42;
 
 class TileMap : Drawable, Transformable, Node
 {
@@ -42,7 +46,59 @@ class TileMap : Drawable, Transformable, Node
         m_canMove = true;
     }
 
-    bool load(const(string) tileset, Vector2u tileSize, const(int[]) tiles, uint width, uint height)
+    // This assumes that the input image is a square image.
+    bool loadFromImage(const(string) tileset, const(string) mapImage, Vector2u tileSize)
+    {
+        Image image = new Image();
+        if(!image.loadFromFile(mapImage))
+        {
+            return false;
+        }
+
+        ubyte[] pixelArray = image.getPixelArray();
+        int[] tiles = new int[pixelArray.length / 4];
+        Vector2u start, end;
+        int size = cast(int) Math.sqrt(pixelArray.length / 4);
+
+        for(int i = 0; i < pixelArray.length; i += 4)
+        {
+            if(pixelArray[i] == pixelArray[i+1])
+            {
+                //Deal with being either BLACK or WHITE
+                if(pixelArray[i] == 255)
+                {
+                    //Pixel is WHITE
+                    tiles[i/4] = 0;
+                }
+                else
+                {
+                    //Pixel is BLACK
+                    tiles[i/4] = 1;
+                }
+            }
+            else if(pixelArray[i] == 255)
+            {
+                //Deal with being RED
+                int index = i/4;
+                tiles[index] = EXIT;
+
+                end = Vector2u(size * (index/size), index%size);
+            }
+            else
+            {
+                //Deal with being GREEN
+                int index = i/4;
+                tiles[index] = ENTRANCE;
+
+                start = Vector2u(size * (index/size), index%size);
+            }
+        }
+
+        return load(tileset, tileSize, tiles, size, size, start, end);
+    }
+
+    bool load(const(string) tileset, Vector2u tileSize, const(int[]) tiles,
+                uint width, uint height, Vector2u playerStart, Vector2u playerEnd)
     {
         // load the tileset texture
         if (!m_tileset.loadFromFile(tileset))

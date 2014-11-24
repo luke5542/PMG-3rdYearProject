@@ -66,7 +66,7 @@ class TileMapGUI
 
         debug writeln("Loading tile map");
         tileMap = new TileMap();
-        if(!tileMap.load(TILE_MAP_LOC, Vector2u(32, 32), level, 20, 20))
+        if(!tileMap.load(TILE_MAP_LOC, Vector2u(32, 32), level, 20, 20, Vector2u(0,0), Vector2u(1,0)))
         {
             writeln("Couldn't load image...");
             exit(1);

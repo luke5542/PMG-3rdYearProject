@@ -84,9 +84,9 @@ class PerlinGenerator
 		Image image = new Image();
 		if(!image.create(m_noiseWidth, m_noiseHeight, Color.Black))
 		{
-			return null;
+			return;
 		}
-		
+
 		//Temporary stuff to print the demo images...
 		foreach(i; 0..m_noiseWidth)
 		{

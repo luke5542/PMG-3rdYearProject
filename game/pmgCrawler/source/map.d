@@ -55,10 +55,10 @@ class TileMap : Drawable, Transformable, Node
             return false;
         }
 
-        ubyte[] pixelArray = image.getPixelArray();
+        const(ubyte[]) pixelArray = image.getPixelArray();
         int[] tiles = new int[pixelArray.length / 4];
         Vector2u start, end;
-        int size = cast(int) Math.sqrt(pixelArray.length / 4);
+        int size = cast(int) sqrt(pixelArray.length / 4.0);
 
         for(int i = 0; i < pixelArray.length; i += 4)
         {

@@ -69,7 +69,7 @@ mixin template NormalNode()
 	{
 	    if(index >= arr.length)
 	    {
-	    	writeln("YA DOOF, index(", index, ") >= arr.length(", arr.length, ")");
+	    	debug writeln("YA DOOF, index(", index, ") >= arr.length(", arr.length, ")");
 	    }
 	    else
 	    {

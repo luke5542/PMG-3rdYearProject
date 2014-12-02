@@ -231,6 +231,8 @@ class DelegateAnimation : Animation
 
 unittest
 {
+	import dunit.toolkit;
+
 	writeln("Testing DelegateAnimation...");
 
 	string helloWorld = "Hello World!";
@@ -244,9 +246,10 @@ unittest
 	delAnim.update(seconds(.5));
 	delAnim.update(seconds(.5));
 	delAnim.update(seconds(.5));
-	assert(!delAnim.isRunning());
+	//assert(!delAnim.isRunning());
+	assertFalse(delAnim.isRunning());
 
-	writeln("DelegateAnimation tests passed!");
+	//writeln("DelegateAnimation tests passed!");
 	writeln();
 }
 
@@ -291,6 +294,8 @@ class RotateAnimation : TransformAnimation
 
 unittest
 {
+	import dunit.toolkit;
+
 	auto sprite = new Sprite();
 	sprite.rotation = 0;
 
@@ -302,21 +307,27 @@ unittest
 		sprite.rotation, 180);
 
 	rotateAnim.update(seconds(.5));
-	assert(sprite.rotation == 45);
+	//assert(sprite.rotation == 45);
+	assertEqual(sprite.rotation, 45);
 
 	rotateAnim.update(seconds(1));
-	assert(sprite.rotation == 135);
+	//assert(sprite.rotation == 135);
+	assertEqual(sprite.rotation, 135);
 
 	rotateAnim.update(seconds(.5));
-	assert(sprite.rotation == 180);
-	assert(!rotateAnim.isRunning());
+	//assert(sprite.rotation == 180);
+	//assert(!rotateAnim.isRunning());
+	assertEqual(sprite.rotation, 180);
+	assertFalse(rotateAnim.isRunning());
 
-	writeln("Rotation Animation tests passed.");
+	//writeln("Rotation Animation tests passed.");
 	writeln();
 }
 
 unittest
-{	
+{
+	import dunit.toolkit;
+
 	auto sprite = new Sprite();
 	sprite.rotation = 0;
 
@@ -329,25 +340,25 @@ unittest
 	rotateAnim.repeateCount = 1;
 
 	rotateAnim.update(seconds(1.0));
-	assert(sprite.rotation == 90);
-	assert(rotateAnim.isRunning());
+	assertEqual(sprite.rotation, 90);
+	assertTrue(rotateAnim.isRunning());
 
 	rotateAnim.update(seconds(.5));
-	assert(sprite.rotation == 135);
-	assert(rotateAnim.isRunning());
+	assertEqual(sprite.rotation, 135);
+	assertTrue(rotateAnim.isRunning());
 
 	rotateAnim.update(seconds(.5));
-	assert(sprite.rotation == 0);
-	assert(rotateAnim.isRunning());
+	assertEqual(sprite.rotation, 0);
+	assertTrue(rotateAnim.isRunning());
 
 	rotateAnim.update(seconds(1.0));
-	assert(sprite.rotation == 90);
-	assert(rotateAnim.isRunning());
+	assertEqual(sprite.rotation, 90);
+	assertTrue(rotateAnim.isRunning());
 
 
 	rotateAnim.update(seconds(1.0));
-	assert(sprite.rotation == 180);
-	assert(!rotateAnim.isRunning());
+	assertEqual(sprite.rotation, 180);
+	assertFalse(rotateAnim.isRunning());
 	writeln("Single repeate success.");
 
 	rotateAnim = new RotateAnimation(sprite, transDuration, 0, 180);
@@ -355,24 +366,24 @@ unittest
 	rotateAnim.repeateCount = INFINITE;
 
 	rotateAnim.update(seconds(1.0));
-	assert(sprite.rotation == 90);
-	assert(rotateAnim.isRunning());
+	assertEqual(sprite.rotation, 90);
+	assertTrue(rotateAnim.isRunning());
 
 	rotateAnim.update(seconds(1.0));
-	assert(sprite.rotation == 0);
-	assert(rotateAnim.isRunning());
+	assertEqual(sprite.rotation, 0);
+	assertTrue(rotateAnim.isRunning());
 
 	rotateAnim.update(seconds(.5));
-	assert(sprite.rotation == 45);
-	assert(rotateAnim.isRunning());
+	assertEqual(sprite.rotation, 45);
+	assertTrue(rotateAnim.isRunning());
 
 	rotateAnim.update(seconds(.5));
-	assert(sprite.rotation == 90);
-	assert(rotateAnim.isRunning());
+	assertEqual(sprite.rotation, 90);
+	assertTrue(rotateAnim.isRunning());
 
 	rotateAnim.update(seconds(199.0));
-	assert(sprite.rotation == 0);
-	assert(rotateAnim.isRunning());
+	assertEqual(sprite.rotation, 0);
+	assertTrue(rotateAnim.isRunning());
 	writeln("Infinite repeate success.");
 
 	rotateAnim = new RotateAnimation(sprite, transDuration, 0, 180);
@@ -380,20 +391,20 @@ unittest
 	rotateAnim.repeateCount = 1;
 
 	rotateAnim.update(seconds(1.0));
-	assert(sprite.rotation == 90);
-	assert(rotateAnim.isRunning());
+	assertEqual(sprite.rotation, 90);
+	assertTrue(rotateAnim.isRunning());
 
 	rotateAnim.update(seconds(1.0));
-	assert(sprite.rotation == 180);
-	assert(rotateAnim.isRunning());
+	assertEqual(sprite.rotation, 180);
+	assertTrue(rotateAnim.isRunning());
 
 	rotateAnim.update(seconds(1.0));
-	assert(sprite.rotation == 90);
-	assert(rotateAnim.isRunning());
+	assertEqual(sprite.rotation, 90);
+	assertTrue(rotateAnim.isRunning());
 
 	rotateAnim.update(seconds(1.0));
-	assert(sprite.rotation == 0);
-	assert(!rotateAnim.isRunning());
+	assertEqual(sprite.rotation, 0);
+	assertFalse(rotateAnim.isRunning());
 	writeln("Single reverse success.");
 
 	rotateAnim = new RotateAnimation(sprite, transDuration, 0, 180);
@@ -401,43 +412,43 @@ unittest
 	rotateAnim.repeateCount = INFINITE;
 
 	rotateAnim.update(seconds(2.0));
-	assert(sprite.rotation == 180);
-	assert(rotateAnim.isRunning());
+	assertEqual(sprite.rotation, 180);
+	assertTrue(rotateAnim.isRunning());
 
 	rotateAnim.update(seconds(0.5));
-	assert(sprite.rotation == 135);
-	assert(rotateAnim.isRunning());
+	assertEqual(sprite.rotation, 135);
+	assertTrue(rotateAnim.isRunning());
 
 	rotateAnim.update(seconds(0.5));
-	assert(sprite.rotation == 90);
-	assert(rotateAnim.isRunning());
+	assertEqual(sprite.rotation, 90);
+	assertTrue(rotateAnim.isRunning());
 
 	rotateAnim.update(seconds(1.0));
-	assert(sprite.rotation == 0);
-	assert(rotateAnim.isRunning());
+	assertEqual(sprite.rotation, 0);
+	assertTrue(rotateAnim.isRunning());
 
 	rotateAnim.update(seconds(.5));
-	assert(sprite.rotation == 45);
-	assert(rotateAnim.isRunning());
+	assertEqual(sprite.rotation, 45);
+	assertTrue(rotateAnim.isRunning());
 
 	rotateAnim.update(seconds(1.5));
-	assert(sprite.rotation == 180);
-	assert(rotateAnim.isRunning());
+	assertEqual(sprite.rotation, 180);
+	assertTrue(rotateAnim.isRunning());
 
 	rotateAnim.update(seconds(.5));
-	assert(sprite.rotation == 135);
-	assert(rotateAnim.isRunning());
+	assertEqual(sprite.rotation, 135);
+	assertTrue(rotateAnim.isRunning());
 
 	rotateAnim.update(seconds(1.5));
-	assert(sprite.rotation == 0);
-	assert(rotateAnim.isRunning());
+	assertEqual(sprite.rotation, 0);
+	assertTrue(rotateAnim.isRunning());
 
 	rotateAnim.update(seconds(200.0));
-	assert(sprite.rotation == 0);
-	assert(rotateAnim.isRunning());
+	assertEqual(sprite.rotation, 0);
+	assertTrue(rotateAnim.isRunning());
 	writeln("Infinite reverse success.");
 
-	writeln("Animation repeating tests passed.");
+	//writeln("Animation repeating tests passed.");
 	writeln();
 }
 
@@ -480,7 +491,8 @@ class TranslationAnimation : VectorTransformAnimation
 
 unittest
 {
-	import std.stdio;
+	import dunit.toolkit;
+
 	writeln("Testing TranslationAnimation...");
 
 	auto sprite = new Sprite();
@@ -492,16 +504,16 @@ unittest
 		sprite.position, Vector2f(100, 100));
 
 	trasnlateAnim.update(seconds(.5));
-	assert(sprite.position == Vector2f(25, 25));
+	assertEqual(sprite.position, Vector2f(25, 25));
 
 	trasnlateAnim.update(seconds(1));
-	assert(sprite.position == Vector2f(75, 75));
+	assertEqual(sprite.position, Vector2f(75, 75));
 
 	trasnlateAnim.update(seconds(.5));
-	assert(sprite.position == Vector2f(100, 100));
-	assert(!trasnlateAnim.isRunning());
+	assertEqual(sprite.position, Vector2f(100, 100));
+	assertFalse(trasnlateAnim.isRunning());
 
-	writeln("Translation Animation tests passed.");
+	//writeln("Translation Animation tests passed.");
 	writeln();
 }
 
@@ -522,6 +534,8 @@ class ScaleAnimation : VectorTransformAnimation
 
 unittest
 {
+	import dunit.toolkit;
+
 	auto sprite = new Sprite();
 	sprite.scale = Vector2f(0, 0);
 
@@ -533,16 +547,16 @@ unittest
 		sprite.scale, Vector2f(10, 10));
 
 	scaleAnim.update(seconds(.5));
-	assert(sprite.scale == Vector2f(2.5, 2.5));
+	assertEqual(sprite.scale, Vector2f(2.5, 2.5));
 
 	scaleAnim.update(seconds(1));
-	assert(sprite.scale == Vector2f(7.5, 7.5));
+	assertEqual(sprite.scale, Vector2f(7.5, 7.5));
 
 	scaleAnim.update(seconds(.5));
-	assert(sprite.scale == Vector2f(10, 10));
-	assert(!scaleAnim.isRunning());
+	assertEqual(sprite.scale, Vector2f(10, 10));
+	assertFalse(scaleAnim.isRunning());
 
-	writeln("Scale Animation tests passed.");
+	//writeln("Scale Animation tests passed.");
 	writeln();
 }
 
@@ -636,6 +650,8 @@ class AnimationSet : Animatable
 
 unittest
 {
+	import dunit.toolkit;
+
 	auto sprite = new Sprite();
 	sprite.scale = Vector2f(0, 0);
 
@@ -651,26 +667,28 @@ unittest
 	auto animSet = new AnimationSet(scaleAnim, translateAnim);
 
 	animSet.update(seconds(.5));
-	assert(sprite.scale == Vector2f(2.5, 2.5));
-	assert(sprite.position == Vector2f(25, 25));
+	assertEqual(sprite.scale, Vector2f(2.5, 2.5));
+	assertEqual(sprite.position, Vector2f(25, 25));
 
 	animSet.update(seconds(1));
-	assert(sprite.scale == Vector2f(7.5, 7.5));
-	assert(sprite.position == Vector2f(75, 75));
+	assertEqual(sprite.scale, Vector2f(7.5, 7.5));
+	assertEqual(sprite.position, Vector2f(75, 75));
 
 	animSet.update(seconds(.5));
-	assert(sprite.scale == Vector2f(10, 10));
-	assert(sprite.position == Vector2f(100, 100));
-	assert(!scaleAnim.isRunning());
-	assert(!translateAnim.isRunning());
-	assert(!animSet.isRunning());
+	assertEqual(sprite.scale, Vector2f(10, 10));
+	assertEqual(sprite.position, Vector2f(100, 100));
+	assertFalse(scaleAnim.isRunning());
+	assertFalse(translateAnim.isRunning());
+	assertFalse(animSet.isRunning());
 
-	writeln("Parallel AnimationSet tests passed.");
+	//writeln("Parallel AnimationSet tests passed.");
 	writeln();
 }
 
 unittest
 {
+	import dunit.toolkit;
+
 	writeln("Testing Sequential AnimationSet...");
 	auto sprite = new Sprite();
 	sprite.scale = Vector2f(0, 0);
@@ -687,28 +705,28 @@ unittest
 	animSet.setMode(AnimationSetMode.SEQUENTIAL);
 
 	animSet.update(seconds(.5));
-	assert(sprite.scale == Vector2f(2.5, 2.5));
+	assertEqual(sprite.scale, Vector2f(2.5, 2.5));
 
 	animSet.update(seconds(1));
-	assert(sprite.scale == Vector2f(7.5, 7.5));
+	assertEqual(sprite.scale, Vector2f(7.5, 7.5));
 
 	animSet.update(seconds(.5));
-	assert(sprite.scale == Vector2f(10, 10));
-	assert(!scaleAnim.isRunning());
+	assertEqual(sprite.scale, Vector2f(10, 10));
+	assertFalse(scaleAnim.isRunning());
 
 	//The translation animation should get run now...
 	animSet.update(seconds(.5));
-	assert(sprite.position == Vector2f(25, 25));
+	assertEqual(sprite.position, Vector2f(25, 25));
 
 	animSet.update(seconds(1));
-	assert(sprite.position == Vector2f(75, 75));
+	assertEqual(sprite.position, Vector2f(75, 75));
 
 	animSet.update(seconds(.5));
-	assert(sprite.position == Vector2f(100, 100));
+	assertEqual(sprite.position, Vector2f(100, 100));
 
-	assert(!translateAnim.isRunning());
-	assert(!animSet.isRunning());
+	assertFalse(translateAnim.isRunning());
+	assertFalse(animSet.isRunning());
 
-	writeln("Sequential AnimationSet tests passed.");
+	//writeln("Sequential AnimationSet tests passed.");
 	writeln();
 }

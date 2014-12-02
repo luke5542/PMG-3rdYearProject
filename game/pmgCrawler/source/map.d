@@ -9,6 +9,7 @@ import dsfml.graphics;
 
 import ridgway.pmgcrawler.tile;
 import ridgway.pmgcrawler.node;
+import ridgway.pmgcrawler.constants;
 
 immutable ENTRANCE = 30;
 immutable EXIT = 42;
@@ -122,6 +123,11 @@ class TileMap : Drawable, Transformable, Node
             {
                 // get the current tile number
                 int tileNumber = m_tiles[i + j * width];
+
+                if(tileNumber == EXIT || tileNumber == ENTRANCE)
+                {
+                    tileNumber = 0;
+                }
 
                 // find its position in the tileset texture
                 int tu = tileNumber % (m_tileset.getSize().x / tileSize.x);
@@ -437,4 +443,10 @@ class VertexTileMap : Drawable, Transformable
         // draw the vertex array
         target.draw(m_vertices, states);
     }
+}
+
+unittest
+{
+    TileMap map = new TileMap();
+    map.loadFromImage(TILE_MAP_LOC, ASSET_LOC ~ "", Vector2u(32, 32));
 }

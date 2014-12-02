@@ -10,12 +10,13 @@
             "mainSourceFile":"source/app.d",
             "platforms": ["linux", "windows"],
             "targetType":"executable",
-            "buildOptions":["debugMode", "unittests"],
             "lflags-linux": ["-Llibs", "-R."],
             "lflags-windows": ["+C:\\Users\\hodor\\Documents\\school_projects\\3rdYearProject\\pmg-3rdyearproject\\game\\pmgCrawler\\dlls\\"],
             "dependencies":
             {
                 "dsfml:graphics": "~master",
+                "dunit": ">=1.0.10",
+                "d-unit": ">=0.7.1",
             },
             "copyFiles-linux":[ "libs/libdsfml-graphics.so.2",
                                 "libs/libdsfml-system.so.2.0",
@@ -53,7 +54,6 @@
             "mainSourceFile":"source/app.d",
             "platforms": ["linux", "windows"],
             "targetType":"executable",
-            "buildOptions":["debugMode"],
             "lflags-linux": ["-Llibs", "-R."],
             "lflags-windows": ["+C:\\Users\\hodor\\Documents\\school_projects\\3rdYearProject\\pmg-3rdyearproject\\game\\pmgCrawler\\dlls\\"],
             "dependencies":
@@ -96,7 +96,6 @@
             "mainSourceFile":"source/app.d",
             "platforms": ["linux", "windows"],
             "targetType":"executable",
-            "buildOptions":["releaseMode", "inline", "optimize"],
             "lflags-linux": ["-Llibs", "-R."],
             "lflags-windows": ["+C:\\Users\\hodor\\Documents\\school_projects\\3rdYearProject\\pmg-3rdyearproject\\game\\pmgCrawler\\dlls\\"],
             "dependencies":

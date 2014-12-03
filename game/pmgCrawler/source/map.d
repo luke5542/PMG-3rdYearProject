@@ -312,7 +312,7 @@ private:
             m_canMove = true;
         }
 
-        void onAnimationRepeate()
+        void onAnimationRepeat()
         {
             //Do nothing, this shouldn't get called
             writeln("This is getting called.... STOP IT!!!");

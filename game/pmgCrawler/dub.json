@@ -6,6 +6,50 @@
 
     "configurations":[
         {
+            "name":"dunit",
+            "mainSourceFile":"source/test/test.d",
+            "platforms": ["linux", "windows"],
+            "targetType":"executable",
+            "lflags-linux": ["-Llibs", "-R."],
+            "lflags-windows": ["+C:\\Users\\hodor\\Documents\\school_projects\\3rdYearProject\\pmg-3rdyearproject\\game\\pmgCrawler\\dlls\\"],
+            "dependencies":
+            {
+                "dsfml:graphics": "~master",
+                "d-unit": ">=0.7.1",
+                "dunit": ">=1.0.10",
+            },
+            "copyFiles-linux":[ "libs/libdsfml-graphics.so.2",
+                                "libs/libdsfml-system.so.2.0",
+                                "libs/libdsfml-graphics.so.2.0",
+                                "libs/libdsfml-window.so",
+                                "libs/libdsfml-network.so",
+                                "libs/libdsfml-window.so.2",
+                                "libs/libdsfml-audio.so",
+                                "libs/libdsfml-network.so.2",
+                                "libs/libdsfml-window.so.2.0",
+                                "libs/libdsfml-audio.so.2",
+                                "libs/libdsfml-network.so.2.0",
+                                "libs/libdsfml-audio.so.2.0",
+                                "libs/libdsfml-system.so",
+                                "libs/libdsfml-graphics.so",
+                                "libs/libdsfml-system.so.2",],
+            "copyFiles-windows":[   "dlls/dsfml-audio-2.dll",
+                                    "dlls/dsfml-graphics-2.dll",
+                                    "dlls/dsfml-network-2.dll",
+                                    "dlls/dsfml-system-2.dll",
+                                    "dlls/dsfml-window-2.dll",
+                                    "dlls/libgcc_s_dw2-1.dll",
+                                    "dlls/libsndfile-1.dll",
+                                    "dlls/libstdc++-6.dll",
+                                    "dlls/libwinpthread-1.dll",
+                                    "dlls/openal32.dll"],
+            "postBuildCommands-linux":["mkdir -p dunit/assets",
+                    "cp -rf ../../images/unittest-assets/* dunit/assets/"],
+            "postBuildCommands-windows":["copy ..\\..\\images\\unittest-assets\\* dunit\\assets\\"],
+            "targetPath": "dunit\\",
+            "workingDirectory":"dunit\\"
+        },
+        {
             "name":"unittests",
             "mainSourceFile":"source/app.d",
             "platforms": ["linux", "windows"],
@@ -15,8 +59,8 @@
             "dependencies":
             {
                 "dsfml:graphics": "~master",
-                "dunit": ">=1.0.10",
                 "d-unit": ">=0.7.1",
+                "dunit": ">=1.0.10",
             },
             "copyFiles-linux":[ "libs/libdsfml-graphics.so.2",
                                 "libs/libdsfml-system.so.2.0",
@@ -59,6 +103,8 @@
             "dependencies":
             {
                 "dsfml:graphics": "~master",
+                "d-unit": ">=0.7.1",
+                "dunit": ">=1.0.10",
             },
             "copyFiles-linux":[ "libs/libdsfml-graphics.so.2",
                                 "libs/libdsfml-system.so.2.0",
@@ -101,6 +147,8 @@
             "dependencies":
             {
                 "dsfml:graphics": "~master",
+                "d-unit": ">=0.7.1",
+                "dunit": ">=1.0.10",
             },
             "copyFiles-linux":[ "libs/libdsfml-graphics.so.2",
                                 "libs/libdsfml-system.so.2.0",

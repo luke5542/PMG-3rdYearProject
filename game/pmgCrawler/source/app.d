@@ -171,7 +171,8 @@ void main(string[] args)
 {
     version(unittest)
     {
-        writeln("Empty main for unittests...");
+        import dunit;
+        dunit_main(args);
     }
     else
     {

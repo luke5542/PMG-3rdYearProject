@@ -42,8 +42,8 @@ class Player : CircleShape, Node
 
 		Time pulseAnimDur = seconds(1.75);
 		auto delAnim = new DelegateAnimation(pulseAnimDur, &updatePulseAnim);
-		delAnim.repeateMode = RepeateMode.REPEATE;
-		delAnim.repeateCount = INFINITE;
+		delAnim.repeatMode = RepeatMode.REPEAT;
+		delAnim.repeatCount = INFINITE;
 		runAnimation(delAnim);
 	}
 

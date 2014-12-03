@@ -7,7 +7,7 @@
     "configurations":[
         {
             "name":"dunit",
-            "mainSourceFile":"source/test/test.d",
+            "mainSourceFile":"source/app.d",
             "platforms": ["linux", "windows"],
             "targetType":"executable",
             "lflags-linux": ["-Llibs", "-R."],

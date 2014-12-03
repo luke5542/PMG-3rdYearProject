@@ -229,30 +229,6 @@ class DelegateAnimation : Animation
 
 }
 
-unittest
-{
-	import dunit.toolkit;
-
-	writeln("Testing DelegateAnimation...");
-
-	string helloWorld = "Hello World!";
-	void someFunc(double progress) { writeln("Yes, can access: ", helloWorld,
-									 ", with progress: ", progress); }
-
-	auto dur = seconds(2);
-
-	auto delAnim = new DelegateAnimation(dur, &someFunc);
-	delAnim.update(seconds(.5));
-	delAnim.update(seconds(.5));
-	delAnim.update(seconds(.5));
-	delAnim.update(seconds(.5));
-	//assert(!delAnim.isRunning());
-	assertFalse(delAnim.isRunning());
-
-	//writeln("DelegateAnimation tests passed!");
-	writeln();
-}
-
 /// Base class for animations that act upon a transformable.
 class TransformAnimation : Animation
 {
@@ -292,166 +268,6 @@ class RotateAnimation : TransformAnimation
 
 }
 
-unittest
-{
-	import dunit.toolkit;
-
-	auto sprite = new Sprite();
-	sprite.rotation = 0;
-
-	Time transDuration = seconds(2.0);
-
-	writeln("Testing RotateAnimation...");
-
-	auto rotateAnim = new RotateAnimation(sprite, transDuration,
-		sprite.rotation, 180);
-
-	rotateAnim.update(seconds(.5));
-	//assert(sprite.rotation == 45);
-	assertEqual(sprite.rotation, 45);
-
-	rotateAnim.update(seconds(1));
-	//assert(sprite.rotation == 135);
-	assertEqual(sprite.rotation, 135);
-
-	rotateAnim.update(seconds(.5));
-	//assert(sprite.rotation == 180);
-	//assert(!rotateAnim.isRunning());
-	assertEqual(sprite.rotation, 180);
-	assertFalse(rotateAnim.isRunning());
-
-	//writeln("Rotation Animation tests passed.");
-	writeln();
-}
-
-unittest
-{
-	import dunit.toolkit;
-
-	auto sprite = new Sprite();
-	sprite.rotation = 0;
-
-	Time transDuration = seconds(2.0);
-
-	writeln("Testing repeating animations.");
-
-	auto rotateAnim = new RotateAnimation(sprite, transDuration, 0, 180);
-	rotateAnim.repeatMode = RepeatMode.REPEAT;
-	rotateAnim.repeatCount = 1;
-
-	rotateAnim.update(seconds(1.0));
-	assertEqual(sprite.rotation, 90);
-	assertTrue(rotateAnim.isRunning());
-
-	rotateAnim.update(seconds(.5));
-	assertEqual(sprite.rotation, 135);
-	assertTrue(rotateAnim.isRunning());
-
-	rotateAnim.update(seconds(.5));
-	assertEqual(sprite.rotation, 0);
-	assertTrue(rotateAnim.isRunning());
-
-	rotateAnim.update(seconds(1.0));
-	assertEqual(sprite.rotation, 90);
-	assertTrue(rotateAnim.isRunning());
-
-
-	rotateAnim.update(seconds(1.0));
-	assertEqual(sprite.rotation, 180);
-	assertFalse(rotateAnim.isRunning());
-	writeln("Single repeat success.");
-
-	rotateAnim = new RotateAnimation(sprite, transDuration, 0, 180);
-	rotateAnim.repeatMode = RepeatMode.REPEAT;
-	rotateAnim.repeatCount = INFINITE;
-
-	rotateAnim.update(seconds(1.0));
-	assertEqual(sprite.rotation, 90);
-	assertTrue(rotateAnim.isRunning());
-
-	rotateAnim.update(seconds(1.0));
-	assertEqual(sprite.rotation, 0);
-	assertTrue(rotateAnim.isRunning());
-
-	rotateAnim.update(seconds(.5));
-	assertEqual(sprite.rotation, 45);
-	assertTrue(rotateAnim.isRunning());
-
-	rotateAnim.update(seconds(.5));
-	assertEqual(sprite.rotation, 90);
-	assertTrue(rotateAnim.isRunning());
-
-	rotateAnim.update(seconds(199.0));
-	assertEqual(sprite.rotation, 0);
-	assertTrue(rotateAnim.isRunning());
-	writeln("Infinite repeat success.");
-
-	rotateAnim = new RotateAnimation(sprite, transDuration, 0, 180);
-	rotateAnim.repeatMode = RepeatMode.REVERSE;
-	rotateAnim.repeatCount = 1;
-
-	rotateAnim.update(seconds(1.0));
-	assertEqual(sprite.rotation, 90);
-	assertTrue(rotateAnim.isRunning());
-
-	rotateAnim.update(seconds(1.0));
-	assertEqual(sprite.rotation, 180);
-	assertTrue(rotateAnim.isRunning());
-
-	rotateAnim.update(seconds(1.0));
-	assertEqual(sprite.rotation, 90);
-	assertTrue(rotateAnim.isRunning());
-
-	rotateAnim.update(seconds(1.0));
-	assertEqual(sprite.rotation, 0);
-	assertFalse(rotateAnim.isRunning());
-	writeln("Single reverse success.");
-
-	rotateAnim = new RotateAnimation(sprite, transDuration, 0, 180);
-	rotateAnim.repeatMode = RepeatMode.REVERSE;
-	rotateAnim.repeatCount = INFINITE;
-
-	rotateAnim.update(seconds(2.0));
-	assertEqual(sprite.rotation, 180);
-	assertTrue(rotateAnim.isRunning());
-
-	rotateAnim.update(seconds(0.5));
-	assertEqual(sprite.rotation, 135);
-	assertTrue(rotateAnim.isRunning());
-
-	rotateAnim.update(seconds(0.5));
-	assertEqual(sprite.rotation, 90);
-	assertTrue(rotateAnim.isRunning());
-
-	rotateAnim.update(seconds(1.0));
-	assertEqual(sprite.rotation, 0);
-	assertTrue(rotateAnim.isRunning());
-
-	rotateAnim.update(seconds(.5));
-	assertEqual(sprite.rotation, 45);
-	assertTrue(rotateAnim.isRunning());
-
-	rotateAnim.update(seconds(1.5));
-	assertEqual(sprite.rotation, 180);
-	assertTrue(rotateAnim.isRunning());
-
-	rotateAnim.update(seconds(.5));
-	assertEqual(sprite.rotation, 135);
-	assertTrue(rotateAnim.isRunning());
-
-	rotateAnim.update(seconds(1.5));
-	assertEqual(sprite.rotation, 0);
-	assertTrue(rotateAnim.isRunning());
-
-	rotateAnim.update(seconds(200.0));
-	assertEqual(sprite.rotation, 0);
-	assertTrue(rotateAnim.isRunning());
-	writeln("Infinite reverse success.");
-
-	//writeln("Animation repeating tests passed.");
-	writeln();
-}
-
 /// Base class for animations that require Vector2f-based values.
 class VectorTransformAnimation : TransformAnimation
 {
@@ -489,34 +305,6 @@ class TranslationAnimation : VectorTransformAnimation
 	}
 }
 
-unittest
-{
-	import dunit.toolkit;
-
-	writeln("Testing TranslationAnimation...");
-
-	auto sprite = new Sprite();
-	sprite.position = Vector2f(0, 0);
-
-	Time transDuration = seconds(2.0);
-
-	auto trasnlateAnim = new TranslationAnimation(sprite, transDuration,
-		sprite.position, Vector2f(100, 100));
-
-	trasnlateAnim.update(seconds(.5));
-	assertEqual(sprite.position, Vector2f(25, 25));
-
-	trasnlateAnim.update(seconds(1));
-	assertEqual(sprite.position, Vector2f(75, 75));
-
-	trasnlateAnim.update(seconds(.5));
-	assertEqual(sprite.position, Vector2f(100, 100));
-	assertFalse(trasnlateAnim.isRunning());
-
-	//writeln("Translation Animation tests passed.");
-	writeln();
-}
-
 /// Animates the transformable's scale.
 class ScaleAnimation : VectorTransformAnimation
 {
@@ -530,34 +318,6 @@ class ScaleAnimation : VectorTransformAnimation
 	{
 		m_transformable.scale = getUpdatedVector(progress);
 	}
-}
-
-unittest
-{
-	import dunit.toolkit;
-
-	auto sprite = new Sprite();
-	sprite.scale = Vector2f(0, 0);
-
-	Time transDuration = seconds(2.0);
-
-	writeln("Testing ScaleAnimation...");
-
-	auto scaleAnim = new ScaleAnimation(sprite, transDuration,
-		sprite.scale, Vector2f(10, 10));
-
-	scaleAnim.update(seconds(.5));
-	assertEqual(sprite.scale, Vector2f(2.5, 2.5));
-
-	scaleAnim.update(seconds(1));
-	assertEqual(sprite.scale, Vector2f(7.5, 7.5));
-
-	scaleAnim.update(seconds(.5));
-	assertEqual(sprite.scale, Vector2f(10, 10));
-	assertFalse(scaleAnim.isRunning());
-
-	//writeln("Scale Animation tests passed.");
-	writeln();
 }
 
 /// Base class for animations that act upon a sprite.
@@ -603,7 +363,7 @@ class AnimationSet : Animatable
 
 	this(Animation[] anims...)
 	{
-		m_anims = anims;
+		m_anims = anims.dup;
 		m_mode = AnimationSetMode.PARALLEL;
 		m_isRunning = true;
 	}
@@ -627,7 +387,7 @@ class AnimationSet : Animatable
 					foreach(anim; m_anims)
 					{
 						anim.update(deltaT);
-						m_isRunning = anim.isRunning() || m_isRunning;
+						m_isRunning = anims.isRunning() || m_isRunning;
 					}
 					break;
 				case AnimationSetMode.SEQUENTIAL:
@@ -646,87 +406,4 @@ class AnimationSet : Animatable
 	{
 		return m_isRunning;
 	}
-}
-
-unittest
-{
-	import dunit.toolkit;
-
-	auto sprite = new Sprite();
-	sprite.scale = Vector2f(0, 0);
-
-	Time transDuration = seconds(2.0);
-
-	writeln("Testing Parallel AnimationSet...");
-	auto scaleAnim = new ScaleAnimation(sprite, transDuration,
-		sprite.scale, Vector2f(10, 10));
-
-	auto translateAnim = new TranslationAnimation(sprite, transDuration,
-		sprite.position, Vector2f(100, 100));
-
-	auto animSet = new AnimationSet(scaleAnim, translateAnim);
-
-	animSet.update(seconds(.5));
-	assertEqual(sprite.scale, Vector2f(2.5, 2.5));
-	assertEqual(sprite.position, Vector2f(25, 25));
-
-	animSet.update(seconds(1));
-	assertEqual(sprite.scale, Vector2f(7.5, 7.5));
-	assertEqual(sprite.position, Vector2f(75, 75));
-
-	animSet.update(seconds(.5));
-	assertEqual(sprite.scale, Vector2f(10, 10));
-	assertEqual(sprite.position, Vector2f(100, 100));
-	assertFalse(scaleAnim.isRunning());
-	assertFalse(translateAnim.isRunning());
-	assertFalse(animSet.isRunning());
-
-	//writeln("Parallel AnimationSet tests passed.");
-	writeln();
-}
-
-unittest
-{
-	import dunit.toolkit;
-
-	writeln("Testing Sequential AnimationSet...");
-	auto sprite = new Sprite();
-	sprite.scale = Vector2f(0, 0);
-
-	Time transDuration = seconds(2.0);
-
-	auto scaleAnim = new ScaleAnimation(sprite, transDuration,
-		sprite.scale, Vector2f(10, 10));
-
-	auto translateAnim = new TranslationAnimation(sprite, transDuration,
-		sprite.position, Vector2f(100, 100));
-
-	auto animSet = new AnimationSet(scaleAnim, translateAnim);
-	animSet.setMode(AnimationSetMode.SEQUENTIAL);
-
-	animSet.update(seconds(.5));
-	assertEqual(sprite.scale, Vector2f(2.5, 2.5));
-
-	animSet.update(seconds(1));
-	assertEqual(sprite.scale, Vector2f(7.5, 7.5));
-
-	animSet.update(seconds(.5));
-	assertEqual(sprite.scale, Vector2f(10, 10));
-	assertFalse(scaleAnim.isRunning());
-
-	//The translation animation should get run now...
-	animSet.update(seconds(.5));
-	assertEqual(sprite.position, Vector2f(25, 25));
-
-	animSet.update(seconds(1));
-	assertEqual(sprite.position, Vector2f(75, 75));
-
-	animSet.update(seconds(.5));
-	assertEqual(sprite.position, Vector2f(100, 100));
-
-	assertFalse(translateAnim.isRunning());
-	assertFalse(animSet.isRunning());
-
-	//writeln("Sequential AnimationSet tests passed.");
-	writeln();
 }

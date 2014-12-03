@@ -387,7 +387,7 @@ class AnimationSet : Animatable
 					foreach(anim; m_anims)
 					{
 						anim.update(deltaT);
-						m_isRunning = anims.isRunning() || m_isRunning;
+						m_isRunning = anim.isRunning() || m_isRunning;
 					}
 					break;
 				case AnimationSetMode.SEQUENTIAL:

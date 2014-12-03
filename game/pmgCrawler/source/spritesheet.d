@@ -72,18 +72,6 @@ class SpriteSheet
 	}
 }
 
-unittest
-{
-	writeln("Testing SpriteSheets");
-
-	SpriteSheet sheet = new SpriteSheet();
-	assert(sheet.loadFromFile("assets/tiles_spritesheet.json"));
-	assert(sheet.getSpriteRect("ground-empty.png") == IntRect(2, 2, 32, 32));
-
-	writeln("Sprite Sheet tests passed.");
-	writeln();
-}
-
 struct SpriteFrameList
 {
 	private
@@ -154,22 +142,4 @@ private struct SpriteFrame
 		spritename = name;
 		duration = dur;
 	}
-}
-
-unittest
-{
-	writeln("Testing SpriteFrameList...");
-
-	auto frameList = SpriteFrameList();
-	frameList.loadFromFile("assets/player_sprite_frames.json");
-
-	assert(frameList.getDuration() == 400);
-	assert(frameList.getFrame(50) == "sprite1");
-	assert(frameList.getFrame(100) == "sprite1");
-	assert(frameList.getFrame(101) == "sprite2");
-	assert(frameList.getFrame(250) == "sprite3");
-	assert(frameList.getFrame(350) == "sprite4");
-
-	writeln("SpriteFrameList tests passed.");
-	writeln();
 }

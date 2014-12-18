@@ -32,6 +32,9 @@ class TileMap : Drawable, Transformable, Node
 
         Vector2i m_tileCenter;
 
+        //The start and end locations for the player.
+        Vector2u m_playerStart, m_playerEnd;
+
         const(int)[] m_tiles;
 
         bool m_canMove;
@@ -61,6 +64,8 @@ class TileMap : Drawable, Transformable, Node
         Vector2u start, end;
         int size = cast(int) sqrt(pixelArray.length / 4.0);
 
+        debug writeln("loadFromImage() Size: ", size);
+
         for(int i = 0; i < pixelArray.length; i += 4)
         {
             if(pixelArray[i] == pixelArray[i+1])
@@ -83,7 +88,9 @@ class TileMap : Drawable, Transformable, Node
                 int index = i/4;
                 tiles[index] = EXIT;
 
-                end = Vector2u(size * (index/size), index%size);
+                debug writeln("Red Index: ", index);
+
+                end = Vector2u(index%size, (size-1) * (index/size));
             }
             else
             {
@@ -91,7 +98,9 @@ class TileMap : Drawable, Transformable, Node
                 int index = i/4;
                 tiles[index] = ENTRANCE;
 
-                start = Vector2u(size * (index/size), index%size);
+                debug writeln("Green Index: ", index);
+
+                start = Vector2u(index%size, (size-1) * (index/size));
             }
         }
 
@@ -101,6 +110,9 @@ class TileMap : Drawable, Transformable, Node
     bool load(const(string) tileset, Vector2u tileSize, const(int[]) tiles,
                 uint width, uint height, Vector2u playerStart, Vector2u playerEnd)
     {
+        m_playerEnd = playerEnd;
+        m_playerStart = playerStart;
+
         // load the tileset texture
         if (!m_tileset.loadFromFile(tileset))
             return false;
@@ -215,7 +227,7 @@ class TileMap : Drawable, Transformable, Node
         int tileNum = m_tiles[tile.x + tile.y * m_size.x];
 
         //TODO improve this to work with any 'walkable' tiles...
-        return tileNum == 0;
+        return tileNum == 0 || tileNum == EXIT || tileNum == ENTRANCE;
     }
 
     void moveUp()
@@ -238,6 +250,15 @@ class TileMap : Drawable, Transformable, Node
         makeMove(Vector2u(1, 0));
     }
 
+    Vector2u getPlayerStart()
+    {
+        return m_playerStart;
+    }
+
+    Vector2u getPlayerEnd()
+    {
+        return m_playerEnd;
+    }
 
     /// This returns the tile map's size in units of tiles
     const(Vector2u) getSize()
@@ -443,10 +464,4 @@ class VertexTileMap : Drawable, Transformable
         // draw the vertex array
         target.draw(m_vertices, states);
     }
-}
-
-unittest
-{
-    TileMap map = new TileMap();
-    map.loadFromImage(TILE_MAP_LOC, ASSET_LOC ~ "", Vector2u(32, 32));
 }

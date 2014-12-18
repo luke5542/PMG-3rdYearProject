@@ -211,16 +211,6 @@ void main(string[] args)
     }
 }
 
-
-unittest
-{
-
-	writeln("Testing the PMG Crawler game.");
-
-	assert(1 == 1);
-
-}
-
 immutable string helpMessage = r"This program is designed to generate map levels and allow you to play them.
 
 Usage

@@ -6,6 +6,9 @@ import std.math;
 
 import dsfml.graphics;
 
+alias StartColor = Color.Gree;
+alias EndColor = Color.Red;
+
 string outFile;
 
 void generatePerlin(string outputFile, int size, bool threshold, bool use3DNoise)
@@ -74,87 +77,10 @@ class PerlinGenerator
 			}
 		}
 
+		placeStartPoint(image);
+		placeEndPoint(image);
+
 		return image;
-	}
-
-	void generateZooms()
-	{
-		generateNoise();
-
-		Image image = new Image();
-		if(!image.create(m_noiseWidth, m_noiseHeight, Color.Black))
-		{
-			return;
-		}
-
-		//Temporary stuff to print the demo images...
-		foreach(i; 0..m_noiseWidth)
-		{
-			foreach(j; 0..m_noiseHeight)
-			{
-				image.setPixel(i, j, getZoomPixelColor(i, j, 1));
-			}
-		}
-		image.saveToFile("zoom1.png");
-
-		foreach(i; 0..m_noiseWidth)
-		{
-			foreach(j; 0..m_noiseHeight)
-			{
-				image.setPixel(i, j, getZoomPixelColor(i, j, 2));
-			}
-		}
-		image.saveToFile("zoom2.png");
-
-		foreach(i; 0..m_noiseWidth)
-		{
-			foreach(j; 0..m_noiseHeight)
-			{
-				image.setPixel(i, j, getZoomPixelColor(i, j, 4));
-			}
-		}
-		image.saveToFile("zoom4.png");
-
-		foreach(i; 0..m_noiseWidth)
-		{
-			foreach(j; 0..m_noiseHeight)
-			{
-				image.setPixel(i, j, getZoomPixelColor(i, j, 8));
-			}
-		}
-		image.saveToFile("zoom8.png");
-
-		foreach(i; 0..m_noiseWidth)
-		{
-			foreach(j; 0..m_noiseHeight)
-			{
-				image.setPixel(i, j, getZoomPixelColor(i, j, 16));
-			}
-		}
-		image.saveToFile("zoom16.png");
-
-
-		//Generate the final image...
-		m_threshold = false;
-		foreach(i; 0..m_noiseWidth)
-		{
-			foreach(j; 0..m_noiseHeight)
-			{
-				image.setPixel(i, j, getPixelColor(i, j));
-			}
-		}
-		image.saveToFile("nonthresh.png");
-
-		//Generate the final image...
-		m_threshold = true;
-		foreach(i; 0..m_noiseWidth)
-		{
-			foreach(j; 0..m_noiseHeight)
-			{
-				image.setPixel(i, j, getPixelColor(i, j));
-			}
-		}
-		image.saveToFile("thresh.png");
 	}
 
 private:
@@ -296,6 +222,9 @@ class PerlinGenerator_3D
 			}
 		}
 
+		placeStartPoint(image);
+		placeEndPoint(image);
+
 		return image;
 	}
 
@@ -378,6 +307,46 @@ private:
 		}
 
 		return 128 * val / initSize;
+	}
+
+}
+
+private void placeStartPoint(Image image)
+{
+	auto imageSize = image.getSize();
+	
+	bool pointPlaced = false;
+	while(!pointPlaced)
+	{
+		auto x = uniform(0, imageSize.x/2);
+		auto y = uniform(0, imageSize.y);
+
+		if(image.getPixel(x, y) == Color.White)
+		{
+			//Safe to set the pixel to green for the starting point...
+			image.setPixel(x, y, StartColor);
+			pointPlaced = true;
+		}
+	}
+
+}
+
+private void placeEndPoint(Image image)
+{
+	auto imageSize = image.getSize();
+	
+	bool pointPlaced = false;
+	while(!pointPlaced)
+	{
+		auto x = uniform(imageSize.x/2, imageSize.x);
+		auto y = uniform(0, imageSize.y);
+
+		if(image.getPixel(x, y) == Color.White)
+		{
+			//Safe to set the pixel to green for the starting point...
+			image.setPixel(x, y, EndColor);
+			pointPlaced = true;
+		}
 	}
 
 }

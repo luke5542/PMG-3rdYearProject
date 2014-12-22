@@ -212,7 +212,7 @@ void main(string[] args)
         }
         catch(GetOptException goe)
         {
-            writeln(goe.msg, "\n");
+            writeln(goe.msg, "\n ");
             writeln(helpMessage);
         }
         

@@ -2,6 +2,7 @@ module ridgway.pmgcrawler.main;
 
 import std.stdio;
 import std.conv;
+import std.getopt;
 
 import dsfml.system;
 import dsfml.graphics;
@@ -176,42 +177,50 @@ void main(string[] args)
     }
     else
     {
-        if(args.length > 1)
+        bool isHelp = false;
+        string perlinOutput;
+        uint size;
+        uint thresh;
+        bool use3D = false;
+        uint smooth;
+
+        try
         {
-            switch(args[1])
+            getopt(args,
+                    "help|h", &isHelp,
+                    "poutput", &perlinOutput,
+                    "thresh", &thresh,
+                    "threed", &use3D,
+                    "size", &size,
+                    "smooth", &smooth);
+
+            if(isHelp)
             {
-                case "-h":
-                    writeln(helpMessage);
-                    break;
-
-                case "-perlin":
-                    debug writeln("Generating map.");
-                    string saveFile = args[2];
-                    int size = to!int(args[3]);
-                    bool threshold = to!bool(args[4]);
-                    bool use3D = to!bool(args[5]);
-                    generatePerlin(saveFile, size, threshold, use3D);
-                    break;
-
-                default:
-                    //Just run the default game setup...
-                    debug writeln("Staring GUI...");
-                    TileMapGUI gui = new TileMapGUI();
-                    gui.run();
-                    break;
+                writeln(helpMessage);
+            }
+            else if(perlinOutput.length != 0 && size > 0)
+            {
+                debug writeln("Generating map.");
+                generatePerlin(perlinOutput, size, thresh, use3D, smooth);
+            }
+            else
+            {
+                debug writeln("Staring GUI...");
+                TileMapGUI gui = new TileMapGUI();
+                gui.run();
             }
         }
-        else
+        catch(GetOptException goe)
         {
-            debug writeln("Staring GUI...");
-            TileMapGUI gui = new TileMapGUI();
-            gui.run();
+            writeln(goe.msg, "\n");
+            writeln(helpMessage);
         }
         
     }
 }
 
-immutable string helpMessage = r"This program is designed to generate map levels and allow you to play them.
+immutable string helpMessage =
+r"This program is designed to generate map levels and allow you to play them.
 
 Usage
 -----
@@ -219,8 +228,10 @@ Usage
 <empty>:
   just play the game with the default map.
 
--h:
-  display this help message
+-h --help:
+  Display this help message
 
--perlin <output file> <size>:
-  generate a map, of given size, via perlin noise, and save to the given file.";
+--poutput=<output file> --size=<size> --threed=<bool> --thresh=<bool> --smooth<bool>:
+  Generate a map, of given size, via perlin noise, and save to the given file.
+  This also takes the optional arguments to threshold the result image,
+  use 3D perlin noise, and/or smoothing the image.";

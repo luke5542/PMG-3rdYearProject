@@ -74,13 +74,6 @@ class TileMapGUI
 
         tileMap.focusedLocation = Vector2i(400, 300);
 
-        //Load the necessary data for use with the Player's animations, and textures.
-        //auto sheet = new SpriteSheet();
-		//sheet.loadFromFile("assets/acid_splosion.json");
-
-		//auto frameList = SpriteFrameList();
-		//frameList.loadFromFile("assets/acid_splosion_sprite_frames.json");
-
         m_player = new Player();
         m_player.position = Vector2f(400, 300);
 
@@ -106,26 +99,7 @@ class TileMapGUI
                 }
                 else if(event.type == Event.EventType.KeyPressed)
                 {
-                	//if(event.key.code == Keyboard.Key.Down)
-                	//{
-                	//	writeln("Down arrow key pressed.");
-                	//	tileMap.moveDown();
-                	//}
-                	//else if(event.key.code == Keyboard.Key.Up)
-                	//{
-                	//	writeln("Up arrow key pressed.");
-                	//	tileMap.moveUp();
-                	//}
-                	//else if(event.key.code == Keyboard.Key.Left)
-                	//{
-                	//	writeln("Left arror key pressed.");
-                	//	tileMap.moveLeft();
-                	//}
-                	//else if(event.key.code == Keyboard.Key.Right)
-                	//{
-                	//	writeln("Right arrow key pressed.");
-                	//	tileMap.moveRight();
-                	//}
+                	
                 	if(event.key.code == Keyboard.Key.Escape)
                 	{
                 		exit(0);
@@ -177,4 +151,34 @@ class TileMapGUI
         window.display();
     }
 
+}
+
+class GeneratedMapGUI : TileMapGUI
+{
+	private
+	{
+
+	}
+
+	this()
+    {
+    	auto settings = ContextSettings();
+    	settings.antialiasingLevel = 8;
+        window = new RenderWindow(VideoMode(800,600), "PMG Crawler", Window.Style.DefaultStyle, settings);
+
+        debug writeln("Loading tile map");
+        tileMap = new TileMap();
+        if(!tileMap.load(TILE_MAP_LOC, Vector2u(32, 32), level, 20, 20, Vector2u(0,0), Vector2u(1,0)))
+        {
+            writeln("Couldn't load image...");
+            exit(1);
+        }
+
+        tileMap.focusedLocation = Vector2i(400, 300);
+
+        m_player = new Player();
+        m_player.position = Vector2f(400, 300);
+
+        m_canMove = false;
+    }
 }

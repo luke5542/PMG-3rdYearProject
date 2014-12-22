@@ -6,12 +6,12 @@ import std.math;
 
 import dsfml.graphics;
 
-alias StartColor = Color.Gree;
+alias StartColor = Color.Green;
 alias EndColor = Color.Red;
 
 string outFile;
 
-void generatePerlin(string outputFile, int size, bool threshold, bool use3DNoise)
+void generatePerlin(string outputFile, int size, uint threshold, bool use3DNoise, uint smoothEdges)
 {
 	writeln("Map size:", size);
 	writeln("Save file: ", outputFile);
@@ -21,12 +21,12 @@ void generatePerlin(string outputFile, int size, bool threshold, bool use3DNoise
 	Image image;
 	if(use3DNoise)
 	{
-		PerlinGenerator_3D pGen = new PerlinGenerator_3D(size, size, size, threshold);
+		PerlinGenerator_3D pGen = new PerlinGenerator_3D(size, size, size, threshold > 0);
 		image = pGen.generateImage();
 	}
 	else
 	{
-		PerlinGenerator pGen = new PerlinGenerator(size, size, threshold);
+		PerlinGenerator pGen = new PerlinGenerator(size, size, threshold, smoothEdges);
 		image = pGen.generateImage();
 	}
 	
@@ -46,16 +46,18 @@ class PerlinGenerator
 	{
 		int m_noiseWidth;
 		int m_noiseHeight;
-		bool m_threshold;
+		uint m_threshold;
+		uint m_smoothingValue;
 
 		double[] noise;
 	}
 
-	this(int width, int height, bool thresh)
+	this(int width, int height, uint thresh, uint smoothingValue)
 	{
 		m_noiseWidth = width;
 		m_noiseHeight = height;
 		m_threshold = thresh;
+		m_smoothingValue = smoothingValue;
 	}
 
 	Image generateImage()
@@ -68,19 +70,57 @@ class PerlinGenerator
 			return null;
 		}
 
-		//Generate the final image...
-		foreach(i; 0..m_noiseWidth)
+		//Generate the initial color image...
+		foreach(i; 0 .. m_noiseWidth)
 		{
-			foreach(j; 0..m_noiseHeight)
+			foreach(j; 0 .. m_noiseHeight)
 			{
 				image.setPixel(i, j, getPixelColor(i, j));
 			}
 		}
 
-		placeStartPoint(image);
-		placeEndPoint(image);
+		double average;
+		int count;
 
-		return image;
+		Image newImage = image.dup();
+
+		if(m_smoothingValue > 0)
+		{
+			//Smooth the edges of the image.
+			foreach(i; m_smoothingValue .. (m_noiseWidth - m_smoothingValue))
+			{
+				foreach(j; m_smoothingValue .. (m_noiseHeight - m_smoothingValue))
+				{
+					average = 0;
+					count = 0;
+					foreach(x; i-m_smoothingValue .. (i+m_smoothingValue))
+					{
+						foreach(y; j-m_smoothingValue .. (j+m_smoothingValue))
+						{
+							average += image.getPixel(x, y).g;
+							count++;
+						}
+					}
+
+					//Get the average of the neighboring pixels to determin this pixel's color
+					average /= count;
+
+					if(average > (.50 * 255))
+					{
+						newImage.setPixel(i, j, Color(255, 255, 255, 255));
+					}
+					else
+					{
+						newImage.setPixel(i, j, Color(0, 0, 0, 255));
+					}
+				}
+			}
+		}
+
+		placeStartPoint(newImage);
+		placeEndPoint(newImage);
+
+		return newImage;
 	}
 
 private:
@@ -113,9 +153,9 @@ private:
 
 		turbulence = 256 * abs(sin(turbulence * 3.14159265));*/
 		double turbulence = getTurbulence(x, y, turbSize);
-		if(m_threshold)
+		if(m_threshold > 0)
 		{
-			if(turbulence > (.50 * 255))
+			if(turbulence > m_threshold)
 			{
 				turbulence = 255;
 			}

@@ -168,13 +168,14 @@ class GeneratedMapGUI : TileMapGUI
 
         debug writeln("Loading tile map");
         tileMap = new TileMap();
-        if(!tileMap.load(TILE_MAP_LOC, Vector2u(32, 32), level, 20, 20, Vector2u(0,0), Vector2u(1,0)))
+        if(!tileMap.loadFromImage(TILE_MAP_LOC, ASSET_LOC ~ "swag-smooth2.png", Vector2u(32, 32)))
         {
-            writeln("Couldn't load image...");
+            writeln("Couldn't load tile map image...");
             exit(1);
         }
 
         tileMap.focusedLocation = Vector2i(400, 300);
+        tileMap.focusedTile = tileMap.getPlayerStart();
 
         m_player = new Player();
         m_player.position = Vector2f(400, 300);

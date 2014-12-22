@@ -169,31 +169,31 @@ class TileMap : Drawable, Transformable, Node
 
     /// This sets to currently focused tile in the tile map.
     /// It sets the position for this tile map, so don't manually set the position.
-    //@property
-    //{   
-    //    Vector2u focusedTile(Vector2u newFocus)
-    //    {
-    //        if(newFocus.x >= m_size.x || newFocus.y >= m_size.y)
-    //        {
-    //            //m_focusedTile = Vector2u(0, 0);
-    //            writeln("Error: Trying to exceed tile size! " ~ newFocus.toString());
-    //        }
-    //        else
-    //        {
-    //            m_focusedTile = newFocus;
-    //        }
+    @property
+    {   
+        Vector2u focusedTile(Vector2u newFocus)
+        {
+            if(newFocus.x >= m_size.x || newFocus.y >= m_size.y)
+            {
+                //m_focusedTile = Vector2u(0, 0);
+                writeln("Error: Trying to exceed tile size! " ~ newFocus.toString());
+            }
+            else
+            {
+                m_focusedTile = newFocus;
+            }
 
-    //        debug writeln("New focused tile: " ~ m_focusedTile.toString());
-    //        updateFocusLocation();
+            debug writeln("New focused tile: " ~ m_focusedTile.toString());
+            updateFocusLocation();
 
-    //        return m_focusedTile;
-    //    }
+            return m_focusedTile;
+        }
 
-    //    Vector2u focusedTile() const
-    //    {
-    //        return m_focusedTile;
-    //    }
-    //}
+        Vector2u focusedTile() const
+        {
+            return m_focusedTile;
+        }
+    }
 
     /// This sets the current location for the focused tile.
     /// It sets the position for this tile map, so don't manually set the position.

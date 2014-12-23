@@ -88,9 +88,12 @@ class TileMap : Drawable, Transformable, Node
                 int index = i/4;
                 tiles[index] = EXIT;
 
-                debug writeln("Red Index: ", index);
+                debug writeln("Red Index: ", index,
+                                " Loc: (", index%size,
+                                ",", (index/size),
+                                ")");
 
-                end = Vector2u(index%size, (size-1) * (index/size));
+                end = Vector2u(index%size, (index/size));
             }
             else
             {
@@ -98,9 +101,12 @@ class TileMap : Drawable, Transformable, Node
                 int index = i/4;
                 tiles[index] = ENTRANCE;
 
-                debug writeln("Green Index: ", index);
+                debug writeln("Green Index: ", index,
+                                " Loc: (", index%size,
+                                ",", (index/size),
+                                ")");
 
-                start = Vector2u(index%size, (size-1) * (index/size));
+                start = Vector2u(index%size, (index/size));
             }
         }
 
@@ -176,7 +182,7 @@ class TileMap : Drawable, Transformable, Node
             if(newFocus.x >= m_size.x || newFocus.y >= m_size.y)
             {
                 //m_focusedTile = Vector2u(0, 0);
-                writeln("Error: Trying to exceed tile size! " ~ newFocus.toString());
+                writeln("Focused Tile Error: Trying to exceed tile size! " ~ newFocus.toString());
             }
             else
             {

@@ -183,6 +183,7 @@ void main(string[] args)
         uint thresh;
         bool use3D = false;
         uint smooth;
+        string mapFile;
 
         try
         {
@@ -192,7 +193,8 @@ void main(string[] args)
                     "thresh", &thresh,
                     "threed", &use3D,
                     "size", &size,
-                    "smooth", &smooth);
+                    "smooth", &smooth,
+                    "map", &mapFile);
 
             if(isHelp)
             {
@@ -206,8 +208,16 @@ void main(string[] args)
             else
             {
                 debug writeln("Staring GUI...");
-                TileMapGUI gui = new TileMapGUI();
-                gui.run();
+                if(mapFile)
+                {
+                    GeneratedMapGUI gui = new GeneratedMapGUI(mapFile);
+                    gui.run();
+                }
+                else
+                {
+                    TileMapGUI gui = new TileMapGUI();
+                    gui.run();
+                }
             }
         }
         catch(GetOptException goe)
@@ -225,8 +235,8 @@ r"This program is designed to generate map levels and allow you to play them.
 Usage
 -----
 
-<empty>:
-  just play the game with the default map.
+<empty> --map=<file name>:
+  just play the game with the default map, or the specified image output map.
 
 -h --help:
   Display this help message

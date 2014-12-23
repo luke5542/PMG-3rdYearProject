@@ -54,7 +54,6 @@ class TileMapGUI
         ];
 
         Player m_player;
-        bool m_canMove;
     }
 
     this()
@@ -76,8 +75,6 @@ class TileMapGUI
 
         m_player = new Player();
         m_player.position = Vector2f(400, 300);
-
-        m_canMove = false;
     }
 
     void run()
@@ -155,12 +152,8 @@ class TileMapGUI
 
 class GeneratedMapGUI : TileMapGUI
 {
-	private
-	{
 
-	}
-
-	this()
+	this(string mapFile)
     {
     	auto settings = ContextSettings();
     	settings.antialiasingLevel = 8;
@@ -168,18 +161,18 @@ class GeneratedMapGUI : TileMapGUI
 
         debug writeln("Loading tile map");
         tileMap = new TileMap();
-        if(!tileMap.loadFromImage(TILE_MAP_LOC, ASSET_LOC ~ "swag-smooth2.png", Vector2u(32, 32)))
+        if(!tileMap.loadFromImage(TILE_MAP_LOC, mapFile, Vector2u(32, 32)))
         {
             writeln("Couldn't load tile map image...");
             exit(1);
         }
 
         tileMap.focusedLocation = Vector2i(400, 300);
+        debug writeln("Player Start: ", tileMap.getPlayerStart());
         tileMap.focusedTile = tileMap.getPlayerStart();
 
         m_player = new Player();
         m_player.position = Vector2f(400, 300);
-
-        m_canMove = false;
     }
+
 }

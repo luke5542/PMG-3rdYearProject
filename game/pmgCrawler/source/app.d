@@ -12,6 +12,7 @@ import ridgway.pmgcrawler.map;
 import ridgway.pmgcrawler.constants;
 import ridgway.pmgcrawler.gui;
 import ridgway.pmgcrawler.generators.perlingenerator;
+import ridgway.pmgcrawler.generators.bspgenerator;
 
 class LifeGUI
 {
@@ -178,7 +179,7 @@ void main(string[] args)
     else
     {
         bool isHelp = false;
-        string perlinOutput;
+        string perlinOutput, bspOutput;
         uint size;
         uint thresh;
         bool use3D = false;
@@ -201,15 +202,15 @@ void main(string[] args)
             {
                 writeln(helpMessage);
             }
-            else if(perlinOutput != 0 && size > 0)
+            else if(perlinOutput && size > 0)
             {
                 debug writeln("Generating map.");
                 generatePerlin(perlinOutput, size, thresh, use3D, smooth);
             }
-            else if(bspOutput != 0 && size > 0)
+            else if(bspOutput && size > 0)
             {
                 debug writeln("Generating map.");
-                generateBSP(perlinOutput, size, thresh, use3D, smooth);
+                generateBSP(bspOutput, size);
             }
             else
             {

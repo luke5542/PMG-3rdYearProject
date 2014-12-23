@@ -9,14 +9,10 @@ import dsfml.graphics;
 alias StartColor = Color.Green;
 alias EndColor = Color.Red;
 
-string outFile;
-
 void generatePerlin(string outputFile, int size, uint threshold, bool use3DNoise, uint smoothEdges)
 {
 	writeln("Map size:", size);
 	writeln("Save file: ", outputFile);
-
-	outFile = outputFile;
 
 	Image image;
 	if(use3DNoise)

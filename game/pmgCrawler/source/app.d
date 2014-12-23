@@ -190,6 +190,7 @@ void main(string[] args)
             getopt(args,
                     "help|h", &isHelp,
                     "poutput", &perlinOutput,
+                    "bspoutput", &bspOutput,
                     "thresh", &thresh,
                     "threed", &use3D,
                     "size", &size,
@@ -200,10 +201,15 @@ void main(string[] args)
             {
                 writeln(helpMessage);
             }
-            else if(perlinOutput.length != 0 && size > 0)
+            else if(perlinOutput != 0 && size > 0)
             {
                 debug writeln("Generating map.");
                 generatePerlin(perlinOutput, size, thresh, use3D, smooth);
+            }
+            else if(bspOutput != 0 && size > 0)
+            {
+                debug writeln("Generating map.");
+                generateBSP(perlinOutput, size, thresh, use3D, smooth);
             }
             else
             {

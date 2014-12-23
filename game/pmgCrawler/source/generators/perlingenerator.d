@@ -6,8 +6,7 @@ import std.math;
 
 import dsfml.graphics;
 
-alias StartColor = Color.Green;
-alias EndColor = Color.Red;
+import ridgway.pmgcrawler.generators.generator;
 
 void generatePerlin(string outputFile, int size, uint threshold, bool use3DNoise, uint smoothEdges)
 {
@@ -36,7 +35,7 @@ void generatePerlin(string outputFile, int size, uint threshold, bool use3DNoise
 	}
 }
 
-class PerlinGenerator
+class PerlinGenerator : Generator
 {
 	private
 	{

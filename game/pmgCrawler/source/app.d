@@ -185,6 +185,7 @@ void main(string[] args)
         bool use3D = false;
         uint smooth;
         string mapFile;
+        uint minRoomWidth, minRoomHeight;
 
         try
         {
@@ -196,7 +197,9 @@ void main(string[] args)
                     "threed", &use3D,
                     "size", &size,
                     "smooth", &smooth,
-                    "map", &mapFile);
+                    "map", &mapFile,
+                    "min-room-height|mrh", &minRoomHeight,
+                    "min-room-width|mrw", &minRoomWidth);
 
             if(isHelp)
             {
@@ -209,8 +212,17 @@ void main(string[] args)
             }
             else if(bspOutput && size > 0)
             {
+                if(minRoomHeight == 0)
+                {
+                    minRoomHeight = 10;
+                }
+                if(minRoomWidth == 0)
+                {
+                    minRoomWidth = 10;
+                }
+
                 debug writeln("Generating map.");
-                generateBSP(bspOutput, size);
+                generateBSP(bspOutput, size, minRoomWidth, minRoomHeight);
             }
             else
             {
@@ -251,4 +263,9 @@ Usage
 --poutput=<output file> --size=<size> --threed=<bool> --thresh=<bool> --smooth<bool>:
   Generate a map, of given size, via perlin noise, and save to the given file.
   This also takes the optional arguments to threshold the result image,
-  use 3D perlin noise, and/or smoothing the image.";
+  use 3D perlin noise, and/or smoothing the image.
+
+--bspoutput=<output file> --size=<size> --min-room-height|mrh=<int> -- min-room-width|mrw=<int>:
+  Generate a map via Binary Space Partitioning and save it to the given file.
+  The optional settings for minimum room height/width allow for custom sizing.
+  The default is 10 for each.";

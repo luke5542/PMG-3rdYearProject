@@ -192,7 +192,8 @@ class BSPGenerator : Generator
 				{
 					foreach(y; sideOne.top .. sideOne.top + sideOne.height)
 					{
-						if(image.getPixel(x, y) == Color.White)
+						if(image.getPixel(x, y) == Color.White
+							&& (!(x in edgesTop) || edgesTop[x].y < y))
 						{
 							edgesTop[x] = Vector2u(x, y);
 						}
@@ -202,7 +203,8 @@ class BSPGenerator : Generator
 				{
 					foreach(y; sideTwo.top .. sideTwo.top + sideTwo.height)
 					{
-						if(image.getPixel(x, y) == Color.White)
+						if(image.getPixel(x, y) == Color.White
+							&& (!(x in edgesBottom) || edgesBottom[x].y > y))
 						{
 							edgesBottom[x] = Vector2u(x, y);
 						}
@@ -222,8 +224,67 @@ class BSPGenerator : Generator
 					}
 				}
 
+				//Draw the line between them...
+				int randKey = similarEdges.keys[uniform(0, similarEdges.keys.length)];
+				Vector2u yCoords = similarEdges[randKey];
+				foreach(y; yCoords.x .. yCoords.y)
+				{
+					if(image.getPixel(randKey, y) == Color.Black)
+					{
+						image.setPixel(randKey, y, Color.White);
+					}
+				}
+
 				break;
 			case SplitDirection.HORIZONTAL:
+			//Search for where there's common white on either side of the split
+				Vector2u[int] edgesLeft, edgesRight;
+				foreach(x; sideOne.left .. sideOne.left + sideOne.width)
+				{
+					foreach(y; sideOne.top .. sideOne.top + sideOne.height)
+					{
+						if(image.getPixel(x, y) == Color.White
+							&& (!(y in edgesLeft) || edgesLeft[y].x < x))
+						{
+							edgesLeft[y] = Vector2u(x, y);
+						}
+					}
+				}
+				foreach(x; sideTwo.left .. sideTwo.left + sideTwo.width)
+				{
+					foreach(y; sideTwo.top .. sideTwo.top + sideTwo.height)
+					{
+						if(image.getPixel(x, y) == Color.White
+							&& (!(y in edgesRight) || edgesRight[y].x > x))
+						{
+							edgesRight[y] = Vector2u(x, y);
+						}
+					}
+				}
+
+				//Use the pairs of items, where they exist...
+				Vector2u[int] similarEdges;
+				foreach(y1, vec1; edgesLeft)
+				{
+					foreach(y2, vec2; edgesRight)
+					{
+						if(y2 == y1)
+						{
+							similarEdges[y1] = Vector2u(vec1.x, vec2.x);
+						}
+					}
+				}
+
+				//Draw the line between them
+				int randKey = similarEdges.keys[uniform(0, similarEdges.keys.length)];
+				Vector2u xCoords = similarEdges[randKey];
+				foreach(x; xCoords.x .. xCoords.y)
+				{
+					if(image.getPixel(x, randKey) == Color.Black)
+					{
+						image.setPixel(x, randKey, Color.White);
+					}
+				}
 				break;
 		}
 	}

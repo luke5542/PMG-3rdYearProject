@@ -3,6 +3,7 @@ module ridgway.pmgcrawler.main;
 import std.stdio;
 import std.conv;
 import std.getopt;
+import std.c.stdlib;
 
 import dsfml.system;
 import dsfml.graphics;
@@ -13,6 +14,7 @@ import ridgway.pmgcrawler.constants;
 import ridgway.pmgcrawler.gui;
 import ridgway.pmgcrawler.generators.perlingenerator;
 import ridgway.pmgcrawler.generators.bspgenerator;
+import ridgway.pmgcrawler.mapconfig;
 
 class LifeGUI
 {
@@ -186,6 +188,9 @@ void main(string[] args)
         uint smooth;
         string mapFile;
         uint minRoomWidth, minRoomHeight;
+        string rank;
+        string config;
+        int batchGen;
 
         try
         {
@@ -199,30 +204,88 @@ void main(string[] args)
                     "smooth", &smooth,
                     "map", &mapFile,
                     "min-room-height|mrh", &minRoomHeight,
-                    "min-room-width|mrw", &minRoomWidth);
+                    "min-room-width|mrw", &minRoomWidth,
+                    "batch-gen", &batchGen,
+                    "rank", &rank,
+                    "config", &config);
+
+            MapGenConfig configObj;
+            if(config)
+            {
+                configObj = loadConfig(config);
+                if(!configObj)
+                {
+                    stderr.writeln("ERROR! Invalid config. Exiting.");
+                    exit(1);
+                }
+            }
 
             if(isHelp)
             {
                 writeln(helpMessage);
             }
-            else if(perlinOutput && size > 0)
+            else if(perlinOutput && (size > 0 || config))
             {
-                debug writeln("Generating map.");
-                generatePerlin(perlinOutput, size, thresh, use3D, smooth);
-            }
-            else if(bspOutput && size > 0)
-            {
-                if(minRoomHeight == 0)
+                debug writeln("Generating perlin map.");
+                if(config)
                 {
-                    minRoomHeight = 10;
-                }
-                if(minRoomWidth == 0)
-                {
-                    minRoomWidth = 10;
-                }
+                    debug writeln("Using config file: ", config);
 
-                debug writeln("Generating map.");
-                generateBSP(bspOutput, size, minRoomWidth, minRoomHeight);
+                    generatePerlin(perlinOutput,
+                                    configObj.pConfig.size,
+                                    configObj.pConfig.threshold,
+                                    configObj.pConfig.isThreeD,
+                                    configObj.pConfig.smooth);
+                }
+                else
+                {
+                    generatePerlin(perlinOutput, size, thresh, use3D, smooth);
+                }
+            }
+            else if(bspOutput && (size > 0 || config))
+            {
+                debug writeln("Generating bsp map.");
+                if(config)
+                {
+                    debug writeln("Using config file: ", config);
+                    generateBSP(bspOutput,
+                                configObj.bspConfig.size,
+                                configObj.bspConfig.minRoomWidth,
+                                configObj.bspConfig.minRoomHeight);
+                }
+                else
+                {
+                    if(minRoomHeight == 0)
+                    {
+                        minRoomHeight = 10;
+                    }
+                    if(minRoomWidth == 0)
+                    {
+                        minRoomWidth = 10;
+                    }
+
+                    generateBSP(bspOutput, size, minRoomWidth, minRoomHeight);
+                }
+            }
+            else if(batchGen > 0 && config)
+            {
+                writeln("Beginning batch generation of ", batchGen, " maps.");
+                Generators genMethod;
+                foreach(i; 0..batchGen)
+                {
+                    genMethod = uniform(0, Generators.max);
+                    final switch(genMethod)
+                    {
+                        case PERLIN:
+                            break;
+                        case BSP:
+                            break;
+                    }
+                }
+            }
+            else if(rank)
+            {
+                writeln("Ranking map: ", rank);
             }
             else
             {
@@ -249,7 +312,7 @@ void main(string[] args)
 }
 
 immutable string helpMessage =
-r"This program is designed to generate map levels and allow you to play them.
+`This program is designed to generate map levels and allow you to play them.
 
 Usage
 -----
@@ -260,12 +323,45 @@ Usage
 -h --help:
   Display this help message
 
---poutput=<output file> --size=<size> --threed=<bool> --thresh=<bool> --smooth<bool>:
+--poutput=<output file> --config=<file> --size=<size> --threed=<bool> --thresh=<bool> --smooth<bool>:
   Generate a map, of given size, via perlin noise, and save to the given file.
   This also takes the optional arguments to threshold the result image,
   use 3D perlin noise, and/or smoothing the image.
+  Suppling a config file overrides all other command line arguments.
 
---bspoutput=<output file> --size=<size> --min-room-height|mrh=<int> -- min-room-width|mrw=<int>:
+--bspoutput=<output file> --config=<file> --size=<size> --min-room-height|mrh=<int> --min-room-width|mrw=<int>:
   Generate a map via Binary Space Partitioning and save it to the given file.
   The optional settings for minimum room height/width allow for custom sizing.
-  The default is 10 for each.";
+  The default is 10 for each.
+  Suppling a config file overrides all other command line arguments.
+
+--rank=<file name>
+  This will ouput the map verification values for the given map.
+
+--batch-gen=<number of items> --config=<file>
+  This will generate the given number of maps, randomly choosing the map gen algorithm.
+  This will save the maps in a directory named with the date and time, and name the maps
+  with their respective numbers. Finally, this will verify each of the maps as it generates
+  them, and output the results in a log file in the same directory.
+
+
+
+  The config file specifies the properties to input into the various map generators.
+  Below is an example config file's contents (note these are also the defaults):
+
+  {
+    "perlin":
+    {
+      "size":128,
+      "threed":false,
+      "thresh":true,
+      "smooth":true
+    },
+
+    "bsp":
+    {
+      "size":128,
+      "min-room-height":7,
+      "min-room-width":7
+    }
+  }`;

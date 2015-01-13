@@ -12,13 +12,7 @@ enum SplitDirection { VERTICAL, HORIZONTAL }
 
 void generateBSP(string outputFile, int size, uint minRoomWidth, uint minRoomHeight)
 {
-	writeln("Map size:", size);
-	writeln("Save file: ", outputFile);
-
-	Image image;
-
-	BSPGenerator bGen = new BSPGenerator(size, size, minRoomWidth, minRoomHeight);
-	image = bGen.generateImage();
+	auto image = generateBSP(size, minRoomWidth, minRoomHeight);
 	
 	if(image)
 	{
@@ -28,6 +22,19 @@ void generateBSP(string outputFile, int size, uint minRoomWidth, uint minRoomHei
 	{
 		writeln("Failed to generate an image.");
 	}
+}
+
+image generateBSP(int size, uint minRoomWidth, uint minRoomHeight)
+{
+	writeln("Map size:", size);
+	writeln("Save file: ", outputFile);
+
+	Image image;
+
+	BSPGenerator bGen = new BSPGenerator(size, size, minRoomWidth, minRoomHeight);
+	image = bGen.generateImage();
+	
+	return image;
 }
 
 class BSPGenerator : Generator

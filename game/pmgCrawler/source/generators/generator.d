@@ -9,3 +9,9 @@ interface Generator
 {
 	Image generateImage();
 }
+
+enum Generators
+{
+	PERLIN,
+	BSP
+}

@@ -4,3 +4,5 @@
 
 game/pmgCrawler/bin/
 game/pmgCrawler/.dub/
+game/pmgCrawler/dunit/
+game/pmgCrawler/unittests/

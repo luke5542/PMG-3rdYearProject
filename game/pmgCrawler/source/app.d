@@ -7,6 +7,7 @@ import std.c.stdlib;
 import std.random;
 import std.path;
 import std.file;
+import std.algorithm;
 
 import dsfml.system;
 import dsfml.graphics;

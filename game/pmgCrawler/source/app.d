@@ -20,6 +20,7 @@ import ridgway.pmgcrawler.generators.generator;
 import ridgway.pmgcrawler.generators.perlingenerator;
 import ridgway.pmgcrawler.generators.bspgenerator;
 import ridgway.pmgcrawler.mapconfig;
+import ridgway.pmgcrawler.verification.verification;
 
 class LifeGUI
 {
@@ -230,7 +231,6 @@ void main(string[] args)
                 if(config)
                 {
                     debug writeln("Using config file: ", config);
-
                     generatePerlin(perlinOutput,
                                     configObj.pConfig.size,
                                     configObj.pConfig.threshold,
@@ -284,16 +284,31 @@ void main(string[] args)
                 copy(config, dateDir ~ baseName(config));
 
                 Generators genMethod;
+                TestResults results;
                 foreach(i; 0..batchGen)
                 {
                     genMethod = cast(Generators) uniform(0, Generators.max);
+                    Image image;
                     final switch(genMethod)
                     {
                         case Generators.PERLIN:
+                            debug writeln("Generating Perlin Map");
+                            image = generatePerlin(to!string(i) ~ ".png",
+                                        configObj.pConfig.size,
+                                        configObj.pConfig.threshold,
+                                        configObj.pConfig.isThreeD,
+                                        configObj.pConfig.smooth);
                             break;
                         case Generators.BSP:
+                            debug writeln("Generating BSP Map");
+                            image = generateBSP(to!string(i) ~ ".png",
+                                        configObj.bspConfig.size,
+                                        configObj.bspConfig.minRoomWidth,
+                                        configObj.bspConfig.minRoomHeight);
                             break;
                     }
+
+                    results = fullVerification(image);
                 }
             }
             else if(rank)

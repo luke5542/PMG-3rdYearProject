@@ -10,21 +10,7 @@ import ridgway.pmgcrawler.generators.generator;
 
 enum SplitDirection { VERTICAL, HORIZONTAL }
 
-void generateBSP(string outputFile, int size, uint minRoomWidth, uint minRoomHeight)
-{
-	auto image = generateBSP(size, minRoomWidth, minRoomHeight);
-	
-	if(image)
-	{
-		image.saveToFile(outputFile);
-	}
-	else
-	{
-		writeln("Failed to generate an image.");
-	}
-}
-
-image generateBSP(int size, uint minRoomWidth, uint minRoomHeight)
+Image generateBSP(string outputFile, int size, uint minRoomWidth, uint minRoomHeight)
 {
 	writeln("Map size:", size);
 	writeln("Save file: ", outputFile);
@@ -34,6 +20,15 @@ image generateBSP(int size, uint minRoomWidth, uint minRoomHeight)
 	BSPGenerator bGen = new BSPGenerator(size, size, minRoomWidth, minRoomHeight);
 	image = bGen.generateImage();
 	
+	if(image)
+	{
+		image.saveToFile(outputFile);
+	}
+	else
+	{
+		writeln("Failed to generate an image.");
+	}
+
 	return image;
 }
 

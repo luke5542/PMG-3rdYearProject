@@ -8,21 +8,7 @@ import dsfml.graphics;
 
 import ridgway.pmgcrawler.generators.generator;
 
-void generatePerlin(string outputFile, int size, uint threshold, bool use3DNoise, uint smoothEdges)
-{
-	auto image = generatePerlin(size, threshold, use3DNoise, smoothEdges);
-	
-	if(image)
-	{
-		image.saveToFile(outputFile);
-	}
-	else
-	{
-		writeln("Failed to generate an image.");
-	}
-}
-
-void generatePerlin(int size, uint threshold, bool use3DNoise, uint smoothEdges)
+Image generatePerlin(string outputFile, int size, uint threshold, bool use3DNoise, uint smoothEdges)
 {
 	writeln("Map size:", size);
 	writeln("Save file: ", outputFile);
@@ -37,6 +23,15 @@ void generatePerlin(int size, uint threshold, bool use3DNoise, uint smoothEdges)
 	{
 		PerlinGenerator pGen = new PerlinGenerator(size, size, threshold, smoothEdges);
 		image = pGen.generateImage();
+	}
+	
+	if(image)
+	{
+		image.saveToFile(outputFile);
+	}
+	else
+	{
+		writeln("Failed to generate an image.");
 	}
 
 	return image;

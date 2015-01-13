@@ -4,6 +4,9 @@ import std.stdio;
 import std.conv;
 import std.getopt;
 import std.c.stdlib;
+import std.random;
+import std.path;
+import std.file;
 
 import dsfml.system;
 import dsfml.graphics;
@@ -12,6 +15,7 @@ import dsfml.window;
 import ridgway.pmgcrawler.map;
 import ridgway.pmgcrawler.constants;
 import ridgway.pmgcrawler.gui;
+import ridgway.pmgcrawler.generators.generator;
 import ridgway.pmgcrawler.generators.perlingenerator;
 import ridgway.pmgcrawler.generators.bspgenerator;
 import ridgway.pmgcrawler.mapconfig;
@@ -213,11 +217,6 @@ void main(string[] args)
             if(config)
             {
                 configObj = loadConfig(config);
-                if(!configObj)
-                {
-                    stderr.writeln("ERROR! Invalid config. Exiting.");
-                    exit(1);
-                }
             }
 
             if(isHelp)
@@ -270,15 +269,28 @@ void main(string[] args)
             else if(batchGen > 0 && config)
             {
                 writeln("Beginning batch generation of ", batchGen, " maps.");
+
+                //Get the date format and create the necessary directories...
+                string date = std.datetime.Clock.currTime.toISOString;
+                debug writeln("Using date: ", date);
+                string dateDir = "./" ~ date[0 .. $-find(date, ".").length] ~ "/";
+
+                //Copy the config into the directory...
+                if(!exists(dateDir))
+                {
+                    mkdirRecurse(dateDir);
+                }
+                copy(config, dateDir ~ baseName(config));
+
                 Generators genMethod;
                 foreach(i; 0..batchGen)
                 {
-                    genMethod = uniform(0, Generators.max);
+                    genMethod = cast(Generators) uniform(0, Generators.max);
                     final switch(genMethod)
                     {
-                        case PERLIN:
+                        case Generators.PERLIN:
                             break;
-                        case BSP:
+                        case Generators.BSP:
                             break;
                     }
                 }

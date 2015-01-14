@@ -12,41 +12,67 @@ MapGenConfig loadConfig(in string file)
 	JSONValue configJSON = parseJSON(jsonContents);
 
 	auto config = new MapGenConfig();
-	auto perlin = configJSON["perlin"];
-	if(perlin.type == JSON_TYPE.OBJECT)
+	if("perlin" in configJSON)
 	{
-		if(perlin["size"].type == JSON_TYPE.INTEGER)
+		auto perlin = configJSON["perlin"];
+		if(perlin.type == JSON_TYPE.OBJECT)
 		{
-			config.pConfig.size = cast(int) perlin["size"].integer;
-		}
-		if(perlin["threed"].type == JSON_TYPE.TRUE || perlin["threed"].type == JSON_TYPE.FALSE)
-		{
-			config.pConfig.isThreeD = perlin["threed"].type == JSON_TYPE.TRUE;
-		}
-		if(perlin["thresh"].type == JSON_TYPE.TRUE || perlin["thresh"].type == JSON_TYPE.FALSE)
-		{
-			config.pConfig.threshold = perlin["thresh"].type == JSON_TYPE.TRUE;
-		}
-		if(perlin["smooth"].type == JSON_TYPE.TRUE || perlin["smooth"].type == JSON_TYPE.FALSE)
-		{
-			config.pConfig.smooth = perlin["smooth"].type == JSON_TYPE.TRUE;
+			if("size" in perlin && perlin["size"].type == JSON_TYPE.INTEGER)
+			{
+				config.pConfig.size = cast(int) perlin["size"].integer;
+			}
+			if("threed" in perlin && perlin["threed"].type == JSON_TYPE.TRUE || perlin["threed"].type == JSON_TYPE.FALSE)
+			{
+				config.pConfig.isThreeD = perlin["threed"].type == JSON_TYPE.TRUE;
+			}
+			if("thresh" in perlin && perlin["thresh"].type == JSON_TYPE.TRUE || perlin["thresh"].type == JSON_TYPE.FALSE)
+			{
+				config.pConfig.threshold = perlin["thresh"].type == JSON_TYPE.TRUE;
+			}
+			if("smooth" in perlin && perlin["smooth"].type == JSON_TYPE.TRUE || perlin["smooth"].type == JSON_TYPE.FALSE)
+			{
+				config.pConfig.smooth = perlin["smooth"].type == JSON_TYPE.TRUE;
+			}
 		}
 	}
 
-	auto bsp = configJSON["bsp"];
-	if(bsp.type == JSON_TYPE.OBJECT)
+	if("bsp" in configJSON)
 	{
-		if(bsp["size"].type == JSON_TYPE.INTEGER)
+		auto bsp = configJSON["bsp"];
+		if(bsp.type == JSON_TYPE.OBJECT)
 		{
-			config.bspConfig.size = cast(int) bsp["size"].integer;
+			if("size" in bsp && bsp["size"].type == JSON_TYPE.INTEGER)
+			{
+				config.bspConfig.size = cast(int) bsp["size"].integer;
+			}
+			if("min-room-height" in bsp && bsp["min-room-height"].type == JSON_TYPE.INTEGER)
+			{
+				config.bspConfig.minRoomHeight = cast(int) bsp["min-room-height"].integer;
+			}
+			if("min-room-width" in bsp && bsp["min-room-width"].type == JSON_TYPE.INTEGER)
+			{
+				config.bspConfig.minRoomWidth = cast(int) bsp["min-room-width"].integer;
+			}
+			if("min-area-ratio" in bsp && bsp["min-area-ratio"].type == JSON_TYPE.FLOAT)
+			{
+				config.bspConfig.minAreaRatio = bsp["min-area-ratio"].floating;
+			}
 		}
-		if(bsp["min-room-height"].type == JSON_TYPE.INTEGER)
+	}
+
+	if("verification" in configJSON)
+	{
+		auto verif = configJSON["verification"];
+		if(verif.type == JSON_TYPE.OBJECT)
 		{
-			config.bspConfig.minRoomHeight = cast(int) bsp["min-room-height"].integer;
-		}
-		if(bsp["min-room-width"].type == JSON_TYPE.INTEGER)
-		{
-			config.bspConfig.minRoomWidth = cast(int) bsp["min-room-width"].integer;
+			if("dijkstras" in verif && verif["dijkstras"].type == JSON_TYPE.TRUE || verif["dijkstras"].type == JSON_TYPE.FALSE)
+			{
+				config.vConfig.dijkstras = verif["dijkstras"].type == JSON_TYPE.TRUE;
+			}
+			if("randomBot" in verif && verif["randomBot"].type == JSON_TYPE.TRUE || verif["randomBot"].type == JSON_TYPE.FALSE)
+			{
+				config.vConfig.randomBot = verif["randomBot"].type == JSON_TYPE.TRUE;
+			}
 		}
 	}
 
@@ -70,7 +96,16 @@ class MapGenConfig
 		int size = 128;
 		int minRoomHeight = 7;
 		int minRoomWidth = 7;
+		float minAreaRatio = 1.0;
 	}
 
 	BSPConfig bspConfig;
+
+	private struct VerificationConfig
+	{
+		bool dijkstras = true;
+		bool randomBot = false;
+	}
+
+	VerificationConfig vConfig;
 }

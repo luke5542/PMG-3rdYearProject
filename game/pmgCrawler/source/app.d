@@ -220,6 +220,10 @@ void main(string[] args)
             {
                 configObj = loadConfig(config);
             }
+            else
+            {
+                configObj = new MapGenConfig();
+            }
 
             if(isHelp)
             {
@@ -267,7 +271,7 @@ void main(string[] args)
                     generateBSP(bspOutput, size, minRoomWidth, minRoomHeight);
                 }
             }
-            else if(batchGen > 0 && config)
+            else if(batchGen > 0)
             {
                 writeln("Beginning batch generation of ", batchGen, " maps.");
 
@@ -283,33 +287,36 @@ void main(string[] args)
                 }
                 copy(config, dateDir ~ baseName(config));
 
+                //Create the results file so we can store our verification data
+                auto resultsFile = File(dateDir ~ "results", "w");
+                resultsFile.writeln("VERIFICATION RESULTS");
+                resultsFile.writeln("--------------------\n");
+
                 Generators genMethod;
                 TestResults results;
+                string outputFile;
                 foreach(i; 0..batchGen)
                 {
-                    genMethod = cast(Generators) uniform(0, Generators.max);
+                    genMethod = cast(Generators) uniform!"[]"(Generators.min, Generators.max);
                     Image image;
                     final switch(genMethod)
                     {
                         case Generators.PERLIN:
                             debug writeln("Generating Perlin Map");
-                            image = generatePerlin(to!string(i) ~ ".png",
-                                        configObj.pConfig.size,
-                                        configObj.pConfig.threshold,
-                                        configObj.pConfig.isThreeD,
-                                        configObj.pConfig.smooth);
+                            image = generatePerlin(dateDir ~ to!string(i) ~"-perlin" ~ ".png", configObj);
+                            resultsFile.writeln(i, " - Perlin");
                             break;
                         case Generators.BSP:
                             debug writeln("Generating BSP Map");
-                            image = generateBSP(to!string(i) ~ ".png",
-                                        configObj.bspConfig.size,
-                                        configObj.bspConfig.minRoomWidth,
-                                        configObj.bspConfig.minRoomHeight);
+                            image = generateBSP(dateDir ~ to!string(i) ~ "-bsp" ~ ".png", configObj);
+                            resultsFile.writeln(i, " - BSP");
                             break;
                     }
 
-                    results = fullVerification(image);
+                    results = runVerification(configObj, image);
+                    printResults(results, resultsFile);
                 }
+                resultsFile.close();
             }
             else if(rank)
             {
@@ -363,8 +370,9 @@ Usage
   The default is 10 for each.
   Suppling a config file overrides all other command line arguments.
 
---rank=<file name>
-  This will ouput the map verification values for the given map.
+--rank=<file name> --config=<file>
+  This will ouput the map verification values for the given map. The methods to use
+  in verifying the map are passed via the config file.
 
 --batch-gen=<number of items> --config=<file>
   This will generate the given number of maps, randomly choosing the map gen algorithm.
@@ -390,6 +398,13 @@ Usage
     {
       "size":128,
       "min-room-height":7,
-      "min-room-width":7
+      "min-room-width":7,
+      "min-area-ratio":1.0
+    },
+
+    "verification":
+    {
+      "dijkstras":true,
+      "randomBot":false
     }
   }`;

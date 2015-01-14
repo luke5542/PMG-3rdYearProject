@@ -7,6 +7,17 @@ import std.math;
 import dsfml.graphics;
 
 import ridgway.pmgcrawler.generators.generator;
+import ridgway.pmgcrawler.mapconfig;
+
+
+Image generatePerlin(string outputFile, MapGenConfig config)
+{
+	return generatePerlin(outputFile,
+							config.pConfig.size,
+	                        config.pConfig.threshold,
+	                        config.pConfig.isThreeD,
+	                        config.pConfig.smooth);
+}
 
 Image generatePerlin(string outputFile, int size, uint threshold, bool use3DNoise, uint smoothEdges)
 {

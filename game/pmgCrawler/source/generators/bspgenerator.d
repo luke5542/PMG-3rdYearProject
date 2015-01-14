@@ -7,8 +7,20 @@ import std.math;
 import dsfml.graphics;
 
 import ridgway.pmgcrawler.generators.generator;
+import ridgway.pmgcrawler.mapconfig;
 
 enum SplitDirection { VERTICAL, HORIZONTAL }
+
+Image generateBSP(string outputFile, MapGenConfig config)
+{
+	debug writeln("Using config: size-", config.bspConfig.size,
+					", minRoomWidth-", config.bspConfig.minRoomWidth,
+					", minRoomHeight-", config.bspConfig.minRoomHeight);
+	return generateBSP(outputFile,
+						config.bspConfig.size,
+                        config.bspConfig.minRoomWidth,
+                        config.bspConfig.minRoomHeight);
+}
 
 Image generateBSP(string outputFile, int size, uint minRoomWidth, uint minRoomHeight)
 {

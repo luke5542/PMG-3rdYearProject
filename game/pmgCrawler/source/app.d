@@ -187,15 +187,12 @@ void main(string[] args)
     else
     {
         bool isHelp = false;
-        string perlinOutput, bspOutput;
-        uint size;
-        uint thresh;
-        bool use3D = false;
-        uint smooth;
-        string mapFile;
+        string perlinOutput, bspOutput, mapFile;
+        uint size, thresh, smooth;
+        bool use3D = false, verbose = false;
         uint minRoomWidth, minRoomHeight;
-        string rank;
-        string config;
+        float minAreaRatio;
+        string rank, config;
         int batchGen;
 
         try
@@ -211,9 +208,11 @@ void main(string[] args)
                     "map", &mapFile,
                     "min-room-height|mrh", &minRoomHeight,
                     "min-room-width|mrw", &minRoomWidth,
+                    "min-area-ratio|mar", &minAreaRatio,
                     "batch-gen", &batchGen,
                     "rank", &rank,
-                    "config", &config);
+                    "config", &config,
+                    "verbose", &verbose);
 
             MapGenConfig configObj;
             if(config)
@@ -235,11 +234,7 @@ void main(string[] args)
                 if(config)
                 {
                     debug writeln("Using config file: ", config);
-                    generatePerlin(perlinOutput,
-                                    configObj.pConfig.size,
-                                    configObj.pConfig.threshold,
-                                    configObj.pConfig.isThreeD,
-                                    configObj.pConfig.smooth);
+                    generatePerlin(perlinOutput, configObj);
                 }
                 else
                 {
@@ -252,10 +247,7 @@ void main(string[] args)
                 if(config)
                 {
                     debug writeln("Using config file: ", config);
-                    generateBSP(bspOutput,
-                                configObj.bspConfig.size,
-                                configObj.bspConfig.minRoomWidth,
-                                configObj.bspConfig.minRoomHeight);
+                    generateBSP(bspOutput, configObj);
                 }
                 else
                 {
@@ -268,7 +260,7 @@ void main(string[] args)
                         minRoomWidth = 10;
                     }
 
-                    generateBSP(bspOutput, size, minRoomWidth, minRoomHeight);
+                    generateBSP(bspOutput, size, minRoomWidth, minRoomHeight, minAreaRatio);
                 }
             }
             else if(batchGen > 0)
@@ -299,28 +291,41 @@ void main(string[] args)
                 {
                     genMethod = cast(Generators) uniform!"[]"(Generators.min, Generators.max);
                     Image image;
+                    string title;
                     final switch(genMethod)
                     {
                         case Generators.PERLIN:
                             debug writeln("Generating Perlin Map");
                             image = generatePerlin(dateDir ~ to!string(i) ~"-perlin" ~ ".png", configObj);
-                            resultsFile.writeln(i, " - Perlin");
+
+                            title = to!string(i) ~ " - Perlin";
                             break;
                         case Generators.BSP:
                             debug writeln("Generating BSP Map");
                             image = generateBSP(dateDir ~ to!string(i) ~ "-bsp" ~ ".png", configObj);
-                            resultsFile.writeln(i, " - BSP");
+
+                            title = to!string(i) ~ " - BSP";
                             break;
                     }
 
                     results = runVerification(configObj, image);
+
+                    //Print various output.
+                    resultsFile.writeln(title);
                     printResults(results, resultsFile);
+                    if(verbose)
+                    {
+                        writeln(title);
+                        printResults(results, stdout);
+                    }
                 }
                 resultsFile.close();
             }
             else if(rank)
             {
                 writeln("Ranking map: ", rank);
+                auto results = runVerification(configObj, rank);
+                printResults(results, stdout);
             }
             else
             {
@@ -364,7 +369,7 @@ Usage
   use 3D perlin noise, and/or smoothing the image.
   Suppling a config file overrides all other command line arguments.
 
---bspoutput=<output file> --config=<file> --size=<size> --min-room-height|mrh=<int> --min-room-width|mrw=<int>:
+--bspoutput=<output file> --config=<file> --size=<size> --min-room-height|mrh=<int> --min-room-width|mrw=<int> --min-area-ratio|mar=<float>:
   Generate a map via Binary Space Partitioning and save it to the given file.
   The optional settings for minimum room height/width allow for custom sizing.
   The default is 10 for each.

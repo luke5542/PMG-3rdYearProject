@@ -19,17 +19,18 @@ Image generateBSP(string outputFile, MapGenConfig config)
 	return generateBSP(outputFile,
 						config.bspConfig.size,
                         config.bspConfig.minRoomWidth,
-                        config.bspConfig.minRoomHeight);
+                        config.bspConfig.minRoomHeight,
+                        config.bspConfig.minAreaRatio);
 }
 
-Image generateBSP(string outputFile, int size, uint minRoomWidth, uint minRoomHeight)
+Image generateBSP(string outputFile, int size, uint minRoomWidth, uint minRoomHeight, float minAreaRatio)
 {
 	writeln("Map size:", size);
 	writeln("Save file: ", outputFile);
 
 	Image image;
 
-	BSPGenerator bGen = new BSPGenerator(size, size, minRoomWidth, minRoomHeight);
+	BSPGenerator bGen = new BSPGenerator(size, size, minRoomWidth, minRoomHeight, minAreaRatio);
 	image = bGen.generateImage();
 	
 	if(image)
@@ -54,15 +55,19 @@ class BSPGenerator : Generator
 		int m_minRoomWidth;
 		int m_minRoomHeight;
 
+		float m_minAreaRatio;
+
 		double[] noise;
 	}
 
-	this(int width, int height, int minRoomWidth, int minRoomHeight)
+	this(int width, int height, int minRoomWidth, int minRoomHeight, float minAreaRatio)
 	{
 		m_width = width;
 		m_height = height;
 		m_minRoomWidth = minRoomWidth;
 		m_minRoomHeight = minRoomHeight;
+
+		m_minAreaRatio = minAreaRatio;
 	}
 
 	Image generateImage()
@@ -81,8 +86,8 @@ class BSPGenerator : Generator
 	//This method recursively generates a game map through binary space partitioning.
 	void bsp(Image image, IntRect bounds, bool placeStart, bool placeEnd)
 	{
-		bool smallWidth = (bounds.width - m_minRoomWidth - 4) <= m_minRoomWidth;
-		bool smallHeight = (bounds.height - m_minRoomHeight - 4) <= m_minRoomHeight;
+		bool smallWidth = (bounds.width - (m_minRoomWidth * m_minAreaRatio) - 4) <= m_minRoomWidth;
+		bool smallHeight = (bounds.height - (m_minRoomHeight * m_minAreaRatio) - 4) <= m_minRoomHeight;
 		if(smallWidth && smallHeight)
 		{
 			//Just finish here and make a room
@@ -121,10 +126,12 @@ class BSPGenerator : Generator
 					if(placeStart && startLoc == Vector2u(x, y))
 					{
 						image.setPixel(x, y, StartColor);
+						debug writeln("Placed start at (", x, ",", y, ")");
 					}
 					else if(placeEnd && endLoc == Vector2u(x, y))
 					{
 						image.setPixel(x, y, EndColor);
+						debug writeln("Placed end at (", x, ",", y, ")");
 					}
 					else
 					{
@@ -163,7 +170,7 @@ class BSPGenerator : Generator
 	void splitHeight(Image image, IntRect bounds, bool placeStart, bool placeEnd)
 	{
 		int maxOffset = bounds.height - m_minRoomHeight*2 - 4;
-		int randOffset = uniform(0, maxOffset);
+		int randOffset = uniform!"[]"(0, maxOffset);
 		int height = m_minRoomHeight + randOffset + 2;
 
 		IntRect topRect = IntRect(bounds.left, bounds.top,
@@ -180,7 +187,7 @@ class BSPGenerator : Generator
 	void splitWidth(Image image, IntRect bounds, bool placeStart, bool placeEnd)
 	{
 		int maxOffset = bounds.width - m_minRoomWidth*2 - 4;
-		int randOffset = uniform(0, maxOffset);
+		int randOffset = uniform!"[]"(0, maxOffset);
 		int width = m_minRoomWidth + randOffset + 2;
 
 		IntRect leftRect = IntRect(bounds.left, bounds.top,

@@ -25,9 +25,9 @@ MapGenConfig loadConfig(in string file)
 			{
 				config.pConfig.isThreeD = perlin["threed"].type == JSON_TYPE.TRUE;
 			}
-			if("thresh" in perlin && perlin["thresh"].type == JSON_TYPE.TRUE || perlin["thresh"].type == JSON_TYPE.FALSE)
+			if("thresh" in perlin && perlin["thresh"].type == JSON_TYPE.INTEGER)
 			{
-				config.pConfig.threshold = perlin["thresh"].type == JSON_TYPE.TRUE;
+				config.pConfig.threshold = cast(uint) perlin["thresh"].integer;
 			}
 			if("smooth" in perlin && perlin["smooth"].type == JSON_TYPE.TRUE || perlin["smooth"].type == JSON_TYPE.FALSE)
 			{
@@ -85,7 +85,7 @@ class MapGenConfig
 	{
 		int size = 128;
 		bool isThreeD = false;
-		bool threshold = true;
+		uint threshold = 120;
 		bool smooth = true;
 	}
 

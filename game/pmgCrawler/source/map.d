@@ -34,6 +34,7 @@ class TileMap : Drawable, Transformable, Node
 
         //The start and end locations for the player.
         Vector2u m_playerStart, m_playerEnd;
+        bool m_hasStart, m_hasEnd;
 
         const(int)[] m_tiles;
 
@@ -47,11 +48,14 @@ class TileMap : Drawable, Transformable, Node
         m_focusedTile = Vector2u();
         m_tileSize = Vector2u();
 
+        m_hasEnd = false;
+        m_hasStart = false;
         m_canMove = true;
     }
 
-    // This assumes that the input image is a square image.
-    bool loadFromImage(const(string) tileset, const(string) mapImage, Vector2u tileSize)
+
+
+    bool minimalLoadFromImage(in string mapImage)
     {
         Image image = new Image();
         if(!image.loadFromFile(mapImage))
@@ -59,6 +63,13 @@ class TileMap : Drawable, Transformable, Node
             return false;
         }
 
+        minimalLoadFromImage(image);
+
+        return true;
+    }
+
+    void minimalLoadFromImage(Image image)
+    {
         const(ubyte[]) pixelArray = image.getPixelArray();
         int[] tiles = new int[pixelArray.length / 4];
         Vector2u start, end;
@@ -94,6 +105,7 @@ class TileMap : Drawable, Transformable, Node
                                 ")");
 
                 end = Vector2u(index%size, (index/size));
+                m_hasEnd = true;
             }
             else
             {
@@ -107,10 +119,27 @@ class TileMap : Drawable, Transformable, Node
                                 ")");
 
                 start = Vector2u(index%size, (index/size));
+                m_hasStart = true;
             }
         }
 
-        return load(tileset, tileSize, tiles, size, size, start, end);
+        m_size = Vector2u(size, size);
+        m_tiles = tiles;
+        m_playerEnd = end;
+        m_playerStart = start;
+    }
+
+    // This assumes that the input image is a square image.
+    bool loadFromImage(in string tileset, in string mapImage, Vector2u tileSize)
+    {
+        if(minimalLoadFromImage(mapImage))
+        {
+            return load(tileset, tileSize, m_tiles, m_size.x, m_size.y, m_playerStart, m_playerEnd);
+        }
+        else
+        {
+            return false;
+        }
     }
 
     bool load(const(string) tileset, Vector2u tileSize, const(int[]) tiles,
@@ -254,6 +283,16 @@ class TileMap : Drawable, Transformable, Node
     void moveRight()
     {
         makeMove(Vector2u(1, 0));
+    }
+
+    bool hasPlayerStart()
+    {
+        return m_hasStart;
+    }
+
+    bool hasPlayerEnd()
+    {
+        return m_hasEnd;
     }
 
     Vector2u getPlayerStart()

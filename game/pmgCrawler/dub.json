@@ -1,10 +1,32 @@
 {
-	"name": "PMG Crawler",
-	"description": "A Game for Testing Various PMG Algorithms",
-	"copyright": "Copyright © 2014, devin",
-	"authors": ["devin"],
+    "name": "PMG Crawler",
+    "description": "A Game for Testing Various PMG Algorithms",
+    "copyright": "Copyright © 2014, devin",
+    "authors": ["devin"],
 
-    "configurations":[
+      "configurations":[
+        {
+            "name":"osx",
+            "mainSourceFile":"source/app.d",
+            "platforms": ["osx"],
+            "targetType":"executable",
+            "lflags-osx": ["-Llibs"],
+            "dependencies":
+            {
+                "dsfml:graphics": "~master",
+                "d-unit": ">=0.7.1",
+                "dunit": ">=1.0.10",
+            },
+            "postBuildCommands-osx":["mkdir -p bin/MacOS/assets",
+                            "cp -rf ../../images/unittest-assets/* bin/MacOS/assets/",
+                            "cp -rf ../../images/assets/* bin/MacOS/assets/",
+                            "mkdir -p bin/Frameworks",
+                            "cp -rf Frameworks/* bin/Frameworks/",
+                            "cp -rf libs/*.dylib bin/Frameworks/",
+                            "sudo ./refChangeOsx bin"],
+            "targetPath": "bin\\MacOS\\",
+            "workingDirectory":"bin\\MacOS\\"
+        },
         {
             "name":"dunit",
             "mainSourceFile":"source/app.d",
@@ -176,7 +198,7 @@
                                     "dlls/libwinpthread-1.dll",
                                     "dlls/openal32.dll"],
             "postBuildCommands":["mkdir -p bin/release/assets",
-                    "cp -rf ../../images/assets/* bin/release/assets/"],
+                                             "cp -rf ../../images/assets/* bin/release/assets/"],
             "postBuildCommands-windows":["copy ..\\..\\images\\assets\\* bin\\release\\assets\\"],
             "targetPath": "bin\\release\\",
             "workingDirectory":"bin\\release\\"

@@ -25,9 +25,9 @@ import ridgway.pmgcrawler.verification.verification;
 class LifeGUI
 {
 
-	private
-	{
-		RenderWindow window;
+    private
+    {
+        RenderWindow window;
 
         //TileMap lifeMap;
         VertexTileMap lifeMap;
@@ -52,26 +52,26 @@ class LifeGUI
             true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
             true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
         ];
-	}
+    }
 
-	this()
-	{
-		window = new RenderWindow(/*VideoMode.getDesktopMode()*/VideoMode(800,600), "PMG Crawler");//, Window.Style.None);
-		window.setFramerateLimit(3);
+    this()
+    {
+        window = new RenderWindow(/*VideoMode.getDesktopMode()*/VideoMode(800,600), "PMG Crawler");//, Window.Style.None);
+        window.setFramerateLimit(3);
 
         //lifeMap = new TileMap(Vector2i(60, 60));
         lifeMap = new VertexTileMap();
         lifeMap.load(Vector2u(10, 10), level, 17, 17);
-	}
+    }
 
-	void run()
-	{
+    void run()
+    {
         //For event polling...
         Event event;
 
         Clock clock = new Clock();
 
-		while (window.isOpen())
+        while (window.isOpen())
         {
             // check all the window's events that were triggered since the last iteration of the loop
             while(window.pollEvent(event))
@@ -88,7 +88,7 @@ class LifeGUI
             update(window, time);
             draw(window);
         }
-	}
+    }
 
     void update(ref RenderWindow window, Time time)
     {
@@ -347,7 +347,7 @@ void main(string[] args)
             writeln(goe.msg, "\n ");
             writeln(helpMessage);
         }
-        
+
     }
 }
 

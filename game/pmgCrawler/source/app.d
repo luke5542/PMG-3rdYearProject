@@ -260,7 +260,7 @@ void main(string[] args)
                         minRoomWidth = 10;
                     }
 
-                    generateBSP(bspOutput, size, minRoomWidth, minRoomHeight, minAreaRatio);
+                    generateBSP(bspOutput, size, minRoomWidth, minRoomHeight, minAreaRatio, 1);
                 }
             }
             else if(batchGen > 0)
@@ -404,7 +404,8 @@ Usage
       "size":128,
       "min-room-height":7,
       "min-room-width":7,
-      "min-area-ratio":1.0
+      "min-area-ratio":1.0,
+      "room-gap":2
     },
 
     "verification":

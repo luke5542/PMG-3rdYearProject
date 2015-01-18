@@ -13,301 +13,348 @@ enum SplitDirection { VERTICAL, HORIZONTAL }
 
 Image generateBSP(string outputFile, MapGenConfig config)
 {
-	debug writeln("Using config: size-", config.bspConfig.size,
-					", minRoomWidth-", config.bspConfig.minRoomWidth,
-					", minRoomHeight-", config.bspConfig.minRoomHeight);
-	return generateBSP(outputFile,
-						config.bspConfig.size,
+    debug writeln("Using config: size-", config.bspConfig.size,
+                    ", minRoomWidth-", config.bspConfig.minRoomWidth,
+                    ", minRoomHeight-", config.bspConfig.minRoomHeight);
+    return generateBSP(outputFile,
+                        config.bspConfig.size,
                         config.bspConfig.minRoomWidth,
                         config.bspConfig.minRoomHeight,
-                        config.bspConfig.minAreaRatio);
+                        config.bspConfig.minAreaRatio,
+                        config.bspConfig.roomGap);
 }
 
-Image generateBSP(string outputFile, int size, uint minRoomWidth, uint minRoomHeight, float minAreaRatio)
+Image generateBSP(string outputFile, int size, uint minRoomWidth,
+                    uint minRoomHeight, float minAreaRatio, int roomGap)
 {
-	writeln("Map size:", size);
-	writeln("Save file: ", outputFile);
+    writeln("Map size:", size);
+    writeln("Save file: ", outputFile);
 
-	Image image;
+    Image image;
 
-	BSPGenerator bGen = new BSPGenerator(size, size, minRoomWidth, minRoomHeight, minAreaRatio);
-	image = bGen.generateImage();
-	
-	if(image)
-	{
-		image.saveToFile(outputFile);
-	}
-	else
-	{
-		writeln("Failed to generate an image.");
-	}
+    BSPGenerator bGen = new BSPGenerator(size, size, minRoomWidth, minRoomHeight, minAreaRatio, roomGap);
+    image = bGen.generateImage();
 
-	return image;
+    if(image)
+    {
+        image.saveToFile(outputFile);
+    }
+    else
+    {
+        writeln("Failed to generate an image.");
+    }
+
+    return image;
 }
 
 class BSPGenerator : Generator
 {
 
-	private
-	{
-		int m_width;
-		int m_height;
-		int m_minRoomWidth;
-		int m_minRoomHeight;
+    private
+    {
+        int m_width;
+        int m_height;
+        int m_minRoomWidth;
+        int m_minRoomHeight;
 
-		float m_minAreaRatio;
+        float m_minAreaRatio;
 
-		double[] noise;
-	}
+        immutable int ROOM_GAP;
+    }
 
-	this(int width, int height, int minRoomWidth, int minRoomHeight, float minAreaRatio)
-	{
-		m_width = width;
-		m_height = height;
-		m_minRoomWidth = minRoomWidth;
-		m_minRoomHeight = minRoomHeight;
+    this(int width, int height, int minRoomWidth, int minRoomHeight,
+            float minAreaRatio, int roomGap)
+    {
+        m_width = width;
+        m_height = height;
+        m_minRoomWidth = minRoomWidth;
+        m_minRoomHeight = minRoomHeight;
 
-		m_minAreaRatio = minAreaRatio;
-	}
+        m_minAreaRatio = minAreaRatio;
 
-	Image generateImage()
-	{
-		auto image = new Image();
-		if(!image.create(m_width, m_height, Color.Black))
-		{
-			return null;
-		}
+        ROOM_GAP = roomGap;
+    }
 
-		bsp(image, IntRect(0, 0, image.getSize.x, image.getSize.y), true, true);
+    Image generateImage()
+    {
+        auto image = new Image();
+        if(!image.create(m_width, m_height, Color.Black))
+        {
+            return null;
+        }
 
-		return image;
-	}
+        bsp(image, IntRect(0, 0, image.getSize.x, image.getSize.y), true, true);
 
-	//This method recursively generates a game map through binary space partitioning.
-	void bsp(Image image, IntRect bounds, bool placeStart, bool placeEnd)
-	{
-		bool smallWidth = (bounds.width - (m_minRoomWidth * m_minAreaRatio) - 4) <= m_minRoomWidth;
-		bool smallHeight = (bounds.height - (m_minRoomHeight * m_minAreaRatio) - 4) <= m_minRoomHeight;
-		if(smallWidth && smallHeight)
-		{
-			//Just finish here and make a room
+        return image;
+    }
 
-			//Randomize the room size...
-			int offsetHeight = bounds.height - m_minRoomHeight - 2;
-			int offsetWidth = bounds.width - m_minRoomWidth - 2;
+    //This method recursively generates a game map through binary space partitioning.
+    void bsp(Image image, IntRect bounds, bool placeStart, bool placeEnd)
+    {
+        bool smallWidth = (bounds.width - (m_minRoomWidth * m_minAreaRatio) - 4*ROOM_GAP) <= m_minRoomWidth;
+        bool smallHeight = (bounds.height - (m_minRoomHeight * m_minAreaRatio) - 4*ROOM_GAP) <= m_minRoomHeight;
+        if(smallWidth && smallHeight)
+        {
+            //Just finish here and make a room
 
-			int height = m_minRoomHeight + uniform!"[]"(0, offsetHeight);
-			int width = m_minRoomWidth + uniform!"[]"(0, offsetWidth);
-			int top = bounds.top + uniform!"[]"(1, bounds.height - height);
-			int left = bounds.left + uniform!"[]"(1, bounds.width - width);
+            //Randomize the room size...
+            int offsetHeight = bounds.height - m_minRoomHeight - 2*ROOM_GAP;
+            int offsetWidth = bounds.width - m_minRoomWidth - 2*ROOM_GAP;
 
-			//Prepare to set the start/end locations, if needed.
-			Vector2u startLoc, endLoc;
-			if(placeStart)
-			{
-				startLoc = Vector2u(uniform(left, left + width),
-									uniform(top, top + height));
-			}
-			if(placeEnd)
-			{
-				endLoc   = Vector2u(uniform(left, left + width),
-								    uniform(top, top + height));
-			}
+            int height = m_minRoomHeight + uniform!"[]"(0, offsetHeight);
+            int width = m_minRoomWidth + uniform!"[]"(0, offsetWidth);
 
-			//Set the pixel colors for the room. For now, just keep it simple.
-			foreach(y; top .. top + height - 1)
-			{
-				foreach(x; left .. left + width - 1)
-				{
-					if(x >= bounds.left + bounds.width || y >= bounds.top + bounds.height)
-					{
-						debug writeln("Bounds exceeded!! YA DOOF!! (", x, ",", y, ")");
-					}
-					if(placeStart && startLoc == Vector2u(x, y))
-					{
-						image.setPixel(x, y, StartColor);
-						debug writeln("Placed start at (", x, ",", y, ")");
-					}
-					else if(placeEnd && endLoc == Vector2u(x, y))
-					{
-						image.setPixel(x, y, EndColor);
-						debug writeln("Placed end at (", x, ",", y, ")");
-					}
-					else
-					{
-						image.setPixel(x, y, Color.White);
-					}
-				}
-			}
-		}
-		else if(smallWidth && !smallHeight)
-		{
-			//Split the room height-ways
-			splitHeight(image, bounds, placeStart, placeEnd);
-		}
-		else if(!smallWidth && smallHeight)
-		{
-			//Split room width-ways
-			splitWidth(image, bounds, placeStart, placeEnd);
-		}
-		else
-		{
-			//Split room in a random orientation.
-			int splitDir = uniform(0, 2);
-			if(splitDir == SplitDirection.VERTICAL)
-			{
-				//Split height-ways
-				splitHeight(image, bounds, placeStart, placeEnd);
-			}
-			else
-			{
-				//Split width-ways
-				splitWidth(image, bounds, placeStart, placeEnd);
-			}
-		}
-	}
+            //Make sure that there WILL be some overlap with another room,
+            //by moving this one closer to the center.
+            int widthUnderflow = bounds.width - 2*ROOM_GAP - width - m_minRoomWidth;
+            int left;
+            if(widthUnderflow > 0)
+            {
+                left = bounds.left + uniform!"[]"(ROOM_GAP + widthUnderflow, bounds.width - width);
+            }
+            else
+            {
+                left = bounds.left + uniform!"[]"(ROOM_GAP, bounds.width - width);
+            }
 
-	void splitHeight(Image image, IntRect bounds, bool placeStart, bool placeEnd)
-	{
-		int maxOffset = bounds.height - m_minRoomHeight*2 - 4;
-		int randOffset = uniform!"[]"(0, maxOffset);
-		int height = m_minRoomHeight + randOffset + 2;
+            //Make sure that there WILL be some overlap with another room,
+            //by moving this one closer to the center.
+            int heightUnderflow = bounds.height - 2*ROOM_GAP - height - m_minRoomHeight;
+            int top;
+            if(heightUnderflow > 0)
+            {
+                top = bounds.top + uniform!"[]"(ROOM_GAP + heightUnderflow, bounds.height - height);
+            }
+            else
+            {
+                top = bounds.top + uniform!"[]"(ROOM_GAP, bounds.height - height);
+            }
 
-		IntRect topRect = IntRect(bounds.left, bounds.top,
-									bounds.width, height);
-		bsp(image, topRect, placeStart, false);
+            //Prepare to set the start/end locations, if needed.
+            Vector2u startLoc, endLoc;
+            if(placeStart)
+            {
+                startLoc = Vector2u(uniform(left, left + width),
+                                    uniform(top, top + height));
+                //debug writeln("Start calculated at (", startLoc.x, ",", startLoc.y, ")");
+            }
+            if(placeEnd)
+            {
+                endLoc   = Vector2u(uniform(left, left + width),
+                                    uniform(top, top + height));
+                //debug writeln("End calculated at (", endLoc.x, ",", endLoc.y, ")");
+            }
 
-		IntRect bottomRect = IntRect(bounds.left, bounds.top + height,
-									bounds.width, bounds.height - height);
-		bsp(image, bottomRect, false, placeEnd);
+            //Set the pixel colors for the room. For now, just keep it simple.
+            foreach(y; top .. top + height)
+            {
+                foreach(x; left .. left + width)
+                {
+                    if(x >= bounds.left + bounds.width || y >= bounds.top + bounds.height)
+                    {
+                        debug writeln("Bounds exceeded!! YA DOOF!! (", x, ",", y, ")");
+                    }
+                    if(placeStart && startLoc == Vector2u(x, y))
+                    {
+                        image.setPixel(x, y, StartColor);
+                        debug writeln("Placed start at (", x, ",", y, ")");
+                    }
+                    else if(placeEnd && endLoc == Vector2u(x, y))
+                    {
+                        image.setPixel(x, y, EndColor);
+                        debug writeln("Placed end at (", x, ",", y, ")");
+                    }
+                    else
+                    {
+                        image.setPixel(x, y, Color.White);
+                    }
+                }
+            }
+        }
+        else if(smallWidth && !smallHeight)
+        {
+            //Split the room height-ways
+            splitHeight(image, bounds, placeStart, placeEnd);
+        }
+        else if(!smallWidth && smallHeight)
+        {
+            //Split room width-ways
+            splitWidth(image, bounds, placeStart, placeEnd);
+        }
+        else
+        {
+            //Split room in a random orientation.
+            int splitDir = uniform(0, 2);
+            if(splitDir == SplitDirection.VERTICAL)
+            {
+                //Split height-ways
+                splitHeight(image, bounds, placeStart, placeEnd);
+            }
+            else
+            {
+                //Split width-ways
+                splitWidth(image, bounds, placeStart, placeEnd);
+            }
+        }
+    }
 
-		connectRooms(image, SplitDirection.VERTICAL, topRect, bottomRect);
-	}
+    void splitHeight(Image image, IntRect bounds, bool placeStart, bool placeEnd)
+    {
+        int maxOffset = bounds.height - m_minRoomHeight*2 - 4*ROOM_GAP;
+        int randOffset = uniform!"[]"(0, maxOffset);
+        int height = m_minRoomHeight + randOffset + 2*ROOM_GAP;
 
-	void splitWidth(Image image, IntRect bounds, bool placeStart, bool placeEnd)
-	{
-		int maxOffset = bounds.width - m_minRoomWidth*2 - 4;
-		int randOffset = uniform!"[]"(0, maxOffset);
-		int width = m_minRoomWidth + randOffset + 2;
+        IntRect topRect = IntRect(bounds.left, bounds.top,
+                                    bounds.width, height);
+        bsp(image, topRect, placeStart, false);
 
-		IntRect leftRect = IntRect(bounds.left, bounds.top,
-									width, bounds.height);
-		bsp(image, leftRect, placeStart, false);
+        IntRect bottomRect = IntRect(bounds.left, bounds.top + height,
+                                    bounds.width, bounds.height - height);
+        bsp(image, bottomRect, false, placeEnd);
 
-		IntRect rightRect = IntRect(bounds.left + width, bounds.top,
-									bounds.width - width, bounds.height);
-		bsp(image, rightRect, false, placeEnd);
+        connectRooms(image, SplitDirection.VERTICAL, topRect, bottomRect);
+    }
 
-		connectRooms(image, SplitDirection.HORIZONTAL, leftRect, rightRect);
-	}
+    void splitWidth(Image image, IntRect bounds, bool placeStart, bool placeEnd)
+    {
+        int maxOffset = bounds.width - m_minRoomWidth*2 - 4*ROOM_GAP;
+        int randOffset = uniform!"[]"(0, maxOffset);
+        int width = m_minRoomWidth + randOffset + 2*ROOM_GAP;
 
-	//This method makes a pathway across a split in the tree.
-	void connectRooms(Image image, SplitDirection dir, IntRect sideOne, IntRect sideTwo)
-	{
-		final switch(dir)
-		{
-			case SplitDirection.VERTICAL:
-				//Search for where there's common white on either side of the split
-				Vector2u[int] edgesTop, edgesBottom;
-				foreach(x; sideOne.left .. sideOne.left + sideOne.width)
-				{
-					foreach(y; sideOne.top .. sideOne.top + sideOne.height)
-					{
-						if(image.getPixel(x, y) == Color.White
-							&& (!(x in edgesTop) || edgesTop[x].y < y))
-						{
-							edgesTop[x] = Vector2u(x, y);
-						}
-					}
-				}
-				foreach(x; sideTwo.left .. sideTwo.left + sideTwo.width)
-				{
-					foreach(y; sideTwo.top .. sideTwo.top + sideTwo.height)
-					{
-						if(image.getPixel(x, y) == Color.White
-							&& (!(x in edgesBottom) || edgesBottom[x].y > y))
-						{
-							edgesBottom[x] = Vector2u(x, y);
-						}
-					}
-				}
+        IntRect leftRect = IntRect(bounds.left, bounds.top,
+                                    width, bounds.height);
+        bsp(image, leftRect, placeStart, false);
 
-				//Use the pairs of items, where they exist...
-				Vector2u[int] similarEdges;
-				foreach(x1, vec1; edgesTop)
-				{
-					foreach(x2, vec2; edgesBottom)
-					{
-						if(x2 == x1)
-						{
-							similarEdges[x1] = Vector2u(vec1.y, vec2.y);
-						}
-					}
-				}
+        IntRect rightRect = IntRect(bounds.left + width, bounds.top,
+                                    bounds.width - width, bounds.height);
+        bsp(image, rightRect, false, placeEnd);
 
-				//Draw the line between them...
-				int randKey = similarEdges.keys[uniform(0, similarEdges.keys.length)];
-				Vector2u yCoords = similarEdges[randKey];
-				foreach(y; yCoords.x .. yCoords.y)
-				{
-					if(image.getPixel(randKey, y) == Color.Black)
-					{
-						image.setPixel(randKey, y, Color.White);
-					}
-				}
+        connectRooms(image, SplitDirection.HORIZONTAL, leftRect, rightRect);
+    }
 
-				break;
-			case SplitDirection.HORIZONTAL:
-			//Search for where there's common white on either side of the split
-				Vector2u[int] edgesLeft, edgesRight;
-				foreach(x; sideOne.left .. sideOne.left + sideOne.width)
-				{
-					foreach(y; sideOne.top .. sideOne.top + sideOne.height)
-					{
-						if(image.getPixel(x, y) == Color.White
-							&& (!(y in edgesLeft) || edgesLeft[y].x < x))
-						{
-							edgesLeft[y] = Vector2u(x, y);
-						}
-					}
-				}
-				foreach(x; sideTwo.left .. sideTwo.left + sideTwo.width)
-				{
-					foreach(y; sideTwo.top .. sideTwo.top + sideTwo.height)
-					{
-						if(image.getPixel(x, y) == Color.White
-							&& (!(y in edgesRight) || edgesRight[y].x > x))
-						{
-							edgesRight[y] = Vector2u(x, y);
-						}
-					}
-				}
+    //This method makes a pathway across a split in the tree.
+    void connectRooms(Image image, SplitDirection dir, IntRect sideOne, IntRect sideTwo)
+    {
+        final switch(dir)
+        {
+            case SplitDirection.VERTICAL:
+                //Search for where there's common white on either side of the split
+                Vector2u[int] edgesTop, edgesBottom;
+                foreach(x; sideOne.left .. sideOne.left + sideOne.width)
+                {
+                    foreach(y; sideOne.top .. sideOne.top + sideOne.height)
+                    {
+                        if(image.getPixel(x, y) == Color.White
+                            && (!(x in edgesTop) || edgesTop[x].y < y))
+                        {
+                            edgesTop[x] = Vector2u(x, y);
+                        }
+                    }
+                }
+                foreach(x; sideTwo.left .. sideTwo.left + sideTwo.width)
+                {
+                    foreach(y; sideTwo.top .. sideTwo.top + sideTwo.height)
+                    {
+                        if(image.getPixel(x, y) == Color.White
+                            && (!(x in edgesBottom) || edgesBottom[x].y > y))
+                        {
+                            edgesBottom[x] = Vector2u(x, y);
+                        }
+                    }
+                }
 
-				//Use the pairs of items, where they exist...
-				Vector2u[int] similarEdges;
-				foreach(y1, vec1; edgesLeft)
-				{
-					foreach(y2, vec2; edgesRight)
-					{
-						if(y2 == y1)
-						{
-							similarEdges[y1] = Vector2u(vec1.x, vec2.x);
-						}
-					}
-				}
+                //Use the pairs of items, where they exist...
+                Vector2u[int] similarEdges;
+                foreach(x1, vec1; edgesTop)
+                {
+                    foreach(x2, vec2; edgesBottom)
+                    {
+                        if(x2 == x1)
+                        {
+                            similarEdges[x1] = Vector2u(vec1.y, vec2.y);
+                        }
+                    }
+                }
 
-				//Draw the line between them
-				int randKey = similarEdges.keys[uniform(0, similarEdges.keys.length)];
-				Vector2u xCoords = similarEdges[randKey];
-				foreach(x; xCoords.x .. xCoords.y)
-				{
-					if(image.getPixel(x, randKey) == Color.Black)
-					{
-						image.setPixel(x, randKey, Color.White);
-					}
-				}
-				break;
-		}
-	}
+                if(similarEdges.keys.length == 0)
+                {
+                    writeln("No similar edges in VERTICAL split.");
+                    stdout.flush();
+                }
+                else
+                {
+                    //Draw the line between them...
+                    int randKey = similarEdges.keys[uniform(0, similarEdges.keys.length)];
+                    Vector2u yCoords = similarEdges[randKey];
+                    foreach(y; yCoords.x .. yCoords.y)
+                    {
+                        if(image.getPixel(randKey, y) == Color.Black)
+                        {
+                            image.setPixel(randKey, y, Color.White);
+                        }
+                    }
+                }
+
+                break;
+            case SplitDirection.HORIZONTAL:
+            //Search for where there's common white on either side of the split
+                Vector2u[int] edgesLeft, edgesRight;
+                foreach(x; sideOne.left .. sideOne.left + sideOne.width)
+                {
+                    foreach(y; sideOne.top .. sideOne.top + sideOne.height)
+                    {
+                        if(image.getPixel(x, y) == Color.White
+                            && (!(y in edgesLeft) || edgesLeft[y].x < x))
+                        {
+                            edgesLeft[y] = Vector2u(x, y);
+                        }
+                    }
+                }
+                foreach(x; sideTwo.left .. sideTwo.left + sideTwo.width)
+                {
+                    foreach(y; sideTwo.top .. sideTwo.top + sideTwo.height)
+                    {
+                        if(image.getPixel(x, y) == Color.White
+                            && (!(y in edgesRight) || edgesRight[y].x > x))
+                        {
+                            edgesRight[y] = Vector2u(x, y);
+                        }
+                    }
+                }
+
+                //Use the pairs of items, where they exist...
+                Vector2u[int] similarEdges;
+                foreach(y1, vec1; edgesLeft)
+                {
+                    foreach(y2, vec2; edgesRight)
+                    {
+                        if(y2 == y1)
+                        {
+                            similarEdges[y1] = Vector2u(vec1.x, vec2.x);
+                        }
+                    }
+                }
+
+                if(similarEdges.keys.length == 0)
+                {
+                    writeln("No similar edges in HORIZONTAL split.");
+                    stdout.flush();
+                }
+                else
+                {
+                    //Draw the line between them
+                    int randKey = similarEdges.keys[uniform(0, similarEdges.keys.length)];
+                    Vector2u xCoords = similarEdges[randKey];
+                    foreach(x; xCoords.x .. xCoords.y)
+                    {
+                        if(image.getPixel(x, randKey) == Color.Black)
+                        {
+                            image.setPixel(x, randKey, Color.White);
+                        }
+                    }
+                }
+                break;
+        }
+    }
 
 }

@@ -14,6 +14,8 @@ import ridgway.pmgcrawler.constants;
 immutable ENTRANCE = 30;
 immutable EXIT = 42;
 
+enum Move { UP, DOWN, LEFT, RIGHT }
+
 class TileMap : Drawable, Transformable, Node
 {
     mixin NormalTransformable;
@@ -142,6 +144,13 @@ class TileMap : Drawable, Transformable, Node
         }
     }
 
+    // This assumes that the input image is a square image.
+    bool loadFromImage(in string tileset, Image mapImage, Vector2u tileSize)
+    {
+        minimalLoadFromImage(mapImage);
+        return load(tileset, tileSize, m_tiles, m_size.x, m_size.y, m_playerStart, m_playerEnd);
+    }
+
     bool load(const(string) tileset, Vector2u tileSize, const(int[]) tiles,
                 uint width, uint height, Vector2u playerStart, Vector2u playerEnd)
     {
@@ -205,7 +214,7 @@ class TileMap : Drawable, Transformable, Node
     /// This sets to currently focused tile in the tile map.
     /// It sets the position for this tile map, so don't manually set the position.
     @property
-    {   
+    {
         Vector2u focusedTile(Vector2u newFocus)
         {
             if(newFocus.x >= m_size.x || newFocus.y >= m_size.y)
@@ -233,7 +242,7 @@ class TileMap : Drawable, Transformable, Node
     /// This sets the current location for the focused tile.
     /// It sets the position for this tile map, so don't manually set the position.
     @property
-    {   
+    {
         Vector2i focusedLocation(Vector2i newCenter)
         {
             m_tileCenter = newCenter;
@@ -248,6 +257,21 @@ class TileMap : Drawable, Transformable, Node
         {
             return m_tileCenter;
         }
+    }
+
+    bool isWalkable(Vector2u tile) shared
+    {
+        if(tile.x >= m_size.x || tile.y >= m_size.y )
+        {
+            //m_focusedTile = Vector2u(0, 0);
+            writeln("Error: Trying to exceed tile size! ", tile);
+            return false;
+        }
+
+        int tileNum = m_tiles[tile.x + tile.y * m_size.x];
+
+        //TODO improve this to work with any 'walkable' tiles...
+        return tileNum == 0 || tileNum == EXIT || tileNum == ENTRANCE;
     }
 
     bool isWalkable(Vector2u tile)
@@ -265,47 +289,68 @@ class TileMap : Drawable, Transformable, Node
         return tileNum == 0 || tileNum == EXIT || tileNum == ENTRANCE;
     }
 
-    void moveUp()
+    bool canMove()
     {
-        makeMove(Vector2u(0, -1));
+        return m_canMove;
     }
 
-    void moveDown()
+    void makeMove(Move m)
     {
-        makeMove(Vector2u(0, 1));
+        final switch(m)
+        {
+            case Move.UP:
+                makeMove(Vector2u(0, -1));
+                break;
+
+            case Move.DOWN:
+                makeMove(Vector2u(0, 1));
+                break;
+
+            case Move.LEFT:
+                makeMove(Vector2u(-1, 0));
+                break;
+
+            case Move.RIGHT:
+                makeMove(Vector2u(1, 0));
+                break;
+        }
     }
 
-    void moveLeft()
-    {
-        makeMove(Vector2u(-1, 0));
-    }
-
-    void moveRight()
-    {
-        makeMove(Vector2u(1, 0));
-    }
-
-    bool hasPlayerStart()
+    const(bool) hasPlayerStart()
     {
         return m_hasStart;
     }
 
-    bool hasPlayerEnd()
+    const(bool) hasPlayerEnd()
     {
         return m_hasEnd;
     }
 
-    Vector2u getPlayerStart()
+    const(Vector2u) getPlayerStart()
     {
         return m_playerStart;
     }
 
-    Vector2u getPlayerEnd()
+    const(Vector2u) getPlayerEnd()
+    {
+        return m_playerEnd;
+    }
+
+    const(Vector2u) getPlayerStart() shared
+    {
+        return m_playerStart;
+    }
+
+    const(Vector2u) getPlayerEnd() shared
     {
         return m_playerEnd;
     }
 
     /// This returns the tile map's size in units of tiles
+    const(Vector2u) getSize() shared
+    {
+        return m_size;
+    }
     const(Vector2u) getSize()
     {
         return m_size;
@@ -446,7 +491,7 @@ class VertexTileMap : Drawable, Transformable
                     m_vertices[quad + 1].color = Color.Black;
                     m_vertices[quad + 2].color = Color.Black;
                     m_vertices[quad + 3].color = Color.Black;
-                
+
                 }
             }
         }
@@ -497,7 +542,7 @@ class VertexTileMap : Drawable, Transformable
             m_vertices[quad + 1].color = Color.Black;
             m_vertices[quad + 2].color = Color.Black;
             m_vertices[quad + 3].color = Color.Black;
-        
+
         }
     }
 

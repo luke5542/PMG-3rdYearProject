@@ -1,4 +1,4 @@
-module ridgway.pmgcrawler.main;
+module ridgway.pmgcrawler.app;
 
 import std.stdio;
 import std.conv;
@@ -189,7 +189,7 @@ void main(string[] args)
         bool isHelp = false;
         string perlinOutput, bspOutput, mapFile;
         uint size, thresh, smooth;
-        bool use3D = false, verbose = false;
+        bool use3D = false, verbose = false, demo = false;
         uint minRoomWidth, minRoomHeight;
         float minAreaRatio;
         string rank, config;
@@ -197,7 +197,7 @@ void main(string[] args)
 
         try
         {
-            getopt(args,
+            getopt( args,
                     "help|h", &isHelp,
                     "poutput", &perlinOutput,
                     "bspoutput", &bspOutput,
@@ -212,7 +212,8 @@ void main(string[] args)
                     "batch-gen", &batchGen,
                     "rank", &rank,
                     "config", &config,
-                    "verbose", &verbose);
+                    "verbose", &verbose,
+                    "demo", &demo);
 
             MapGenConfig configObj;
             if(config)
@@ -327,17 +328,22 @@ void main(string[] args)
                 auto results = runVerification(configObj, rank);
                 printResults(results, stdout);
             }
+            else if(demo)
+            {
+                auto gui = new DemoMapGUI(configObj);
+                gui.run();
+            }
             else
             {
                 debug writeln("Staring GUI...");
                 if(mapFile)
                 {
-                    GeneratedMapGUI gui = new GeneratedMapGUI(mapFile);
+                    auto gui = new GeneratedMapGUI(mapFile);
                     gui.run();
                 }
                 else
                 {
-                    TileMapGUI gui = new TileMapGUI();
+                    auto gui = new TileMapGUI();
                     gui.run();
                 }
             }
@@ -384,6 +390,11 @@ Usage
   This will save the maps in a directory named with the date and time, and name the maps
   with their respective numbers. Finally, this will verify each of the maps as it generates
   them, and output the results in a log file in the same directory.
+
+--demo --config=<file>
+  This will activate demo mode, which generates a map, verifies it with Dijkstra's, and
+  then makes a bot play it until it gets to the end, at which point it repeats
+  with a newly generated map.
 
 
 

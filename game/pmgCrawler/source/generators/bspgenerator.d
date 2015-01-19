@@ -11,12 +11,23 @@ import ridgway.pmgcrawler.mapconfig;
 
 enum SplitDirection { VERTICAL, HORIZONTAL }
 
+Image generateBSP(MapGenConfig config)
+{
+    return generateBSP("", false, config);
+}
+
 Image generateBSP(string outputFile, MapGenConfig config)
+{
+    return generateBSP(outputFile, true, config);
+}
+
+Image generateBSP(string outputFile, bool saveMap, MapGenConfig config)
 {
     debug writeln("Using config: size-", config.bspConfig.size,
                     ", minRoomWidth-", config.bspConfig.minRoomWidth,
                     ", minRoomHeight-", config.bspConfig.minRoomHeight);
     return generateBSP(outputFile,
+                        saveMap,
                         config.bspConfig.size,
                         config.bspConfig.minRoomWidth,
                         config.bspConfig.minRoomHeight,
@@ -27,6 +38,12 @@ Image generateBSP(string outputFile, MapGenConfig config)
 Image generateBSP(string outputFile, int size, uint minRoomWidth,
                     uint minRoomHeight, float minAreaRatio, int roomGap)
 {
+    return generateBSP(outputFile, true, size, minRoomWidth, minRoomHeight, minAreaRatio, roomGap);
+}
+
+Image generateBSP(string outputFile, bool saveImage, int size, uint minRoomWidth,
+                    uint minRoomHeight, float minAreaRatio, int roomGap)
+{
     writeln("Map size:", size);
     writeln("Save file: ", outputFile);
 
@@ -35,7 +52,7 @@ Image generateBSP(string outputFile, int size, uint minRoomWidth,
     BSPGenerator bGen = new BSPGenerator(size, size, minRoomWidth, minRoomHeight, minAreaRatio, roomGap);
     image = bGen.generateImage();
 
-    if(image)
+    if(image && saveImage)
     {
         image.saveToFile(outputFile);
     }

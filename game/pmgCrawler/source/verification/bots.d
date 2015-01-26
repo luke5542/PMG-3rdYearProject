@@ -4,6 +4,7 @@ import std.concurrency;
 import std.conv;
 import std.random;
 import std.stdio;
+import std.math;
 
 import dsfml.graphics;
 
@@ -154,15 +155,49 @@ class RandomBot : Bot
     }
 }
 
+class AStarMapNode
+{
+    BotMapNode m_mapNode;
+    AStarMapNode m_parent;
+    int distance;
+
+    this(BotMapNode node)
+    {
+        m_mapNode = node;
+    }
+
+    int distance(AStarMapNode other)
+    {
+        auto dist = m_mapNode.m_location - other.m_mapNode.m_location;
+        return abs(dist.x) + abs(dist.y);
+    }
+}
+
+class AStarBot : Bot
+{
+    Vector2f m_endLocation;
+
+    this(shared TileMap map)
+    {
+        super(map);
+        m_endLocation = map.getPlayerEnd();
+    }
+
+    override Move makeNextMove()
+    {
+
+    }
+}
+
 void runBotThread(shared TileMap map)
 {
     auto bot = new RandomBot(map);
     bool done = false;
     while(!done)
     {
-        auto move = bot.makeNextMove();
         try
         {
+            auto move = bot.makeNextMove();
             receive((Exit message) {
                         writeln("Stopping Bot");
                         done = true;
@@ -173,9 +208,16 @@ void runBotThread(shared TileMap map)
         }
         catch(OwnerTerminated exc)
         {
-          //Do same as the Exit message
-          debug writeln("Exiting bot thread due to parental thread termination.");
-          done = true;
+            //Do same as the Exit message
+            debug writeln("Exiting bot thread due to parental thread termination.");
+            debug stdout.flush();
+            done = true;
+        }
+        catch(Exception e)
+        {
+            debug writeln("Exiting bot thread due to exception: ", e);
+            debug stdout.flush();
+            done = true;
         }
     }
 }

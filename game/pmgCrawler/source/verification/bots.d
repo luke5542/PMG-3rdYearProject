@@ -185,7 +185,21 @@ class AStarBot : Bot
 
     override Move makeNextMove()
     {
+        auto move = getAStarMove();
 
+        updateVisibleNodes();
+
+        return move;
+    }
+
+    void updateVisibleNodes()
+    {
+
+    }
+
+    Move getAStarMove()
+    {
+        return Move.min;
     }
 }
 

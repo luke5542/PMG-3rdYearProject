@@ -159,23 +159,38 @@ class AStarMapNode
 {
     BotMapNode m_mapNode;
     AStarMapNode m_parent;
-    int distance;
+    int m_distance;
+    int m_distanceTo;
+    bool m_visited = false;
 
-    this(BotMapNode node)
+    this(BotMapNode node, Vector2f goal)
     {
         m_mapNode = node;
+        m_distanceTo = distanceTo(goal);
     }
 
-    int distance(AStarMapNode other)
+    int distanceTo(AStarMapNode other)
     {
-        auto dist = m_mapNode.m_location - other.m_mapNode.m_location;
+        return distanceTo(other.m_mapNode.m_location);
+    }
+
+    int distanceTo(Vector2f other)
+    {
+        auto dist = m_mapNode.m_location - other;
         return abs(dist.x) + abs(dist.y);
+    }
+
+    override int opCmp(Object other)
+    {
+        auto otherASN = cast(AStarMapNode) other;
+        return (m_distance + m_distanceTo) - (otherASN.m_distance + otherASN,m_distanceTo);
     }
 }
 
 class AStarBot : Bot
 {
     Vector2f m_endLocation;
+    AStarMapNode[][] m_asNodes;
 
     this(shared TileMap map)
     {
@@ -185,7 +200,8 @@ class AStarBot : Bot
 
     override Move makeNextMove()
     {
-        auto move = getAStarMove();
+        auto move = getAStarMove(m_endLocation);
+        applyMove(m);
 
         updateVisibleNodes();
 
@@ -197,9 +213,85 @@ class AStarBot : Bot
 
     }
 
-    Move getAStarMove()
+    void initASMap(Vector2f goal)
     {
+        m_asNodes = new AStarMapNode[][nodes.length];
+        foreach(x; 0..size.x)
+        {
+            m_asNodes[x] = new AStarMapNode[size.y];
+            foreach(y; 0..size.y)
+            {
+                m_asNodes[x][y] = new AStarMapNode(m_nodes[x][y], goal);
+            }
+        }
+    }
+
+    Move getAStarMove(Vector2f goal)
+    {
+        initASMap();
+        AStarMapNode[] unvisitedNodes;
+
+        auto root = nodes[m_location.x][m_location.y];
+        root.m_distance = 0;
+        unvisitedNodes ~= root;
+
+        while(unvisitedNodes.length > 0)
+        {
+            auto currentNode = unvisitedNodes[$-1];
+            currentNode.m_visited = true;
+            unvisitedNodes = unvisitedNodes[0 .. $-1];
+
+            if(currentNode.m_mapNode.m_location == goal)
+            {
+                //TODO we have found our goal... yay...
+            }
+
+            int distance = currentNode.m_distance + 1;
+            auto neighbors = getNeighbors(m_asNodes, currentNode.m_location.x, currentNode.m_location.y);
+            foreach(node; neighbors)
+            {
+                if(node.m_isWalkable)
+                {
+                    if(node.m_distance > distance)
+                    {
+                        node.m_distance = distance;
+                        node.m_parent = currentNode;
+                    }
+
+                    if(!node.m_visited)
+                    {
+                        unvisitedNodes ~= node;
+                    }
+                }
+            }
+            unvisitedNodes.sort;
+        }
+
         return Move.min;
+    }
+
+    AStarMapNode[] getNeighbors(AStarMapNode[][] nodes, int x, int y)
+    {
+        AStarMapNode[] neighbors;
+        auto size = m_mapToTest.getSize();
+        if(x + 1 < size.x && !nodes[x + 1][y].m_visited)
+        {
+            neighbors ~= nodes[x + 1][y];
+        }
+        if(y + 1 < size.y && !nodes[x][y + 1].m_visited)
+        {
+            neighbors ~= nodes[x][y + 1];
+        }
+        if(x > 0 && !nodes[x - 1][y].m_visited)
+        {
+            neighbors ~= nodes[x - 1][y];
+        }
+        if(y > 0 && !nodes[x][y - 1].m_visited)
+        {
+            neighbors ~= nodes[x][y - 1];
+        }
+
+        return neighbors;
     }
 }
 

@@ -92,7 +92,7 @@ class DijkstrasVerifier
                         node.m_parent = currentNode;
                     }
 
-                    if(find(unvisitedNodes, node).length == 0)
+                    if(!node.m_visited)
                     {
                         unvisitedNodes ~= node;
                     }

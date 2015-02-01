@@ -151,14 +151,14 @@ class BSPGenerator : Generator
             Vector2u startLoc, endLoc;
             if(placeStart)
             {
-                startLoc = Vector2u(uniform(left, left + width),
-                                    uniform(top, top + height));
+                startLoc = Vector2u(uniform(left + 1, left + width - 1),
+                                    uniform(top + 1, top + height - 1));
                 //debug writeln("Start calculated at (", startLoc.x, ",", startLoc.y, ")");
             }
             if(placeEnd)
             {
-                endLoc   = Vector2u(uniform(left, left + width),
-                                    uniform(top, top + height));
+                endLoc   = Vector2u(uniform(left + 1, left + width - 1),
+                                    uniform(top + 1, top + height - 1));
                 //debug writeln("End calculated at (", endLoc.x, ",", endLoc.y, ")");
             }
 
@@ -183,7 +183,7 @@ class BSPGenerator : Generator
                     }
                     else
                     {
-                        image.setPixel(x, y, Color.White);
+                        image.setPixel(x, y, Color.Blue);
                     }
                 }
             }
@@ -261,7 +261,7 @@ class BSPGenerator : Generator
                 {
                     foreach(y; sideOne.top .. sideOne.top + sideOne.height)
                     {
-                        if(image.getPixel(x, y) == Color.White
+                        if(image.getPixel(x, y) == Color.Blue
                             && (!(x in edgesTop) || edgesTop[x].y < y))
                         {
                             edgesTop[x] = Vector2u(x, y);
@@ -272,7 +272,7 @@ class BSPGenerator : Generator
                 {
                     foreach(y; sideTwo.top .. sideTwo.top + sideTwo.height)
                     {
-                        if(image.getPixel(x, y) == Color.White
+                        if(image.getPixel(x, y) == Color.Blue
                             && (!(x in edgesBottom) || edgesBottom[x].y > y))
                         {
                             edgesBottom[x] = Vector2u(x, y);
@@ -320,7 +320,7 @@ class BSPGenerator : Generator
                 {
                     foreach(y; sideOne.top .. sideOne.top + sideOne.height)
                     {
-                        if(image.getPixel(x, y) == Color.White
+                        if(image.getPixel(x, y) == Color.Blue
                             && (!(y in edgesLeft) || edgesLeft[y].x < x))
                         {
                             edgesLeft[y] = Vector2u(x, y);
@@ -331,7 +331,7 @@ class BSPGenerator : Generator
                 {
                     foreach(y; sideTwo.top .. sideTwo.top + sideTwo.height)
                     {
-                        if(image.getPixel(x, y) == Color.White
+                        if(image.getPixel(x, y) == Color.Blue
                             && (!(y in edgesRight) || edgesRight[y].x > x))
                         {
                             edgesRight[y] = Vector2u(x, y);

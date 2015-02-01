@@ -222,7 +222,7 @@ void main(string[] args)
             }
             else
             {
-                configObj = new MapGenConfig();
+                configObj = MapGenConfig();
             }
 
             if(isHelp)

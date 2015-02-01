@@ -36,10 +36,10 @@ class TileMapGUI
 
         static const(int[]) level =
         [
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -59,7 +59,7 @@ class TileMapGUI
             1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
             1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
             1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         ];
 
@@ -75,7 +75,7 @@ class TileMapGUI
 
         debug writeln("Loading tile map");
         m_tileMap = new TileMap();
-        if(!m_tileMap.load(TILE_MAP_LOC, Vector2u(32, 32), level, 20, 20, Vector2u(0,0), Vector2u(1,0)))
+        if(!m_tileMap.load(TILE_MAP_LOC, Vector2u(32, 32), level, 20, 25, Vector2u(0,0), Vector2u(1,0)))
         {
             writeln("Couldn't load image...");
             exit(1);
@@ -195,12 +195,13 @@ class DemoMapGUI : TileMapGUI
         Tid m_demoBotThread;
         MapGenConfig m_config;
         bool m_sentMoveRequest = false;
+        Bot bot;
     }
 
     this(MapGenConfig config)
     {
         auto settings = ContextSettings();
-        settings.antialiasingLevel = 4;
+        settings.antialiasingLevel = 8;
         m_window = new RenderWindow(VideoMode(800,600), "PMG Crawler", Window.Style.DefaultStyle, settings);
 
         m_player = new Player();
@@ -208,8 +209,14 @@ class DemoMapGUI : TileMapGUI
 
         m_config = config;
 
+        beginNewMap();
+    }
+
+    void beginNewMap()
+    {
         generateMap();
-        m_demoBotThread = spawnLinked(&runBotThread, cast(shared(TileMap)) m_tileMap);
+        //m_demoBotThread = spawnLinked(&runBotThread, cast(shared(TileMap)) m_tileMap, m_config);
+        bot = initBot(cast(shared(TileMap)) m_tileMap, m_config);
     }
 
     void generateMap()
@@ -266,32 +273,37 @@ class DemoMapGUI : TileMapGUI
     {
         if(m_tileMap.canMove)
         {
-            try
+            if(m_tileMap.focusedTile == m_tileMap.getPlayerEnd)
             {
-                if(!m_sentMoveRequest)
-                {
-                    m_demoBotThread.send(GetMove());
-                    m_sentMoveRequest = true;
-                }
-                receiveTimeout( 10.usecs,
-                                (Move move) {
-                                    m_tileMap.makeMove(move);
-                                    m_sentMoveRequest = false;
-                                });
+                //We are done, and can exit...
+                writeln("Successfully reached the end of the map! Exitting...");
+                //exit(0);
+                //m_demoBotThread.send(Exit());
+                beginNewMap();
             }
-            catch(LinkTerminated exc)
+            else
             {
-              //Do same as the Exit message
-              debug writeln("Exiting GUI thread due to bot thread death.");
-              exit(1);
+                // try
+                // {
+                //     if(!m_sentMoveRequest)
+                //     {
+                //         m_demoBotThread.send(GetMove());
+                //         m_sentMoveRequest = true;
+                //     }
+                //     receiveTimeout( 10.usecs,
+                //                     (Move move) {
+                //                         m_tileMap.makeMove(move);
+                //                         m_sentMoveRequest = false;
+                //                         debug writeln("Moved to: ", m_tileMap.focusedTile);
+                //                     });
+                // }
+                // catch(LinkTerminated exc)
+                // {
+                //   debug writeln("Bot thread has died...");
+                //   exit(1);
+                // }
+                m_tileMap.makeMove(bot.makeNextMove());
             }
-        }
-
-        if(m_tileMap.focusedTile == m_tileMap.getPlayerEnd)
-        {
-            //We are done, and can exit...
-            writeln("Successfully reached the end of the map! Exitting...");
-            exit(0);
         }
 
         m_player.update(time);

@@ -4,6 +4,7 @@ import std.string;
 import std.stdio;
 import std.json;
 import std.file;
+import std.conv;
 
 MapGenConfig loadConfig(in string file)
 {
@@ -11,7 +12,7 @@ MapGenConfig loadConfig(in string file)
 
     JSONValue configJSON = parseJSON(jsonContents);
 
-    auto config = new MapGenConfig();
+    auto config = MapGenConfig();
     if("perlin" in configJSON)
     {
         auto perlin = configJSON["perlin"];
@@ -73,9 +74,9 @@ MapGenConfig loadConfig(in string file)
             {
                 config.vConfig.dijkstras = verif["dijkstras"].type == JSON_TYPE.TRUE;
             }
-            if("randomBot" in verif && verif["randomBot"].type == JSON_TYPE.TRUE || verif["randomBot"].type == JSON_TYPE.FALSE)
+            if("botType" in verif && verif["botType"].type == JSON_TYPE.STRING)
             {
-                config.vConfig.randomBot = verif["randomBot"].type == JSON_TYPE.TRUE;
+                config.vConfig.bot = to!BotType(verif["botType"].str);
             }
         }
     }
@@ -83,13 +84,15 @@ MapGenConfig loadConfig(in string file)
     return config;
 }
 
-class MapGenConfig
+enum BotType { Random, SpeedRunner, Human }
+
+struct MapGenConfig
 {
     private struct PerlinConfig
     {
         int size = 128;
-        bool isThreeD = false;
         uint threshold = 120;
+        bool isThreeD = false;
         bool smooth = true;
     }
 
@@ -108,8 +111,8 @@ class MapGenConfig
 
     private struct VerificationConfig
     {
+        BotType bot = BotType.Random;
         bool dijkstras = true;
-        bool randomBot = false;
     }
 
     VerificationConfig vConfig;

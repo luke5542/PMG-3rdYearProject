@@ -11,8 +11,8 @@ import ridgway.pmgcrawler.tile;
 import ridgway.pmgcrawler.node;
 import ridgway.pmgcrawler.constants;
 
-immutable ENTRANCE = 30;
-immutable EXIT = 42;
+immutable ENTRANCE = 3;
+immutable EXIT = 2;
 
 enum Move { UP, DOWN, LEFT, RIGHT }
 
@@ -55,8 +55,6 @@ class TileMap : Drawable, Transformable, Node
         m_canMove = true;
     }
 
-
-
     bool minimalLoadFromImage(in string mapImage)
     {
         Image image = new Image();
@@ -81,21 +79,23 @@ class TileMap : Drawable, Transformable, Node
 
         for(int i = 0; i < pixelArray.length; i += 4)
         {
-            if(pixelArray[i] == pixelArray[i+1])
+            Color c = Color(pixelArray[i], pixelArray[i+1], pixelArray[i+2], pixelArray[i+3]);
+            if(c == Color.White)
             {
-                //Deal with being either BLACK or WHITE
-                if(pixelArray[i] == 255)
-                {
-                    //Pixel is WHITE
-                    tiles[i/4] = 0;
-                }
-                else
-                {
-                    //Pixel is BLACK
-                    tiles[i/4] = 1;
-                }
+                //Pixel is a plain walkable tile
+                tiles[i/4] = 0;
             }
-            else if(pixelArray[i] == 255)
+            else if(c == Color.Black)
+            {
+                //Pixel is a non-walkable tile
+                tiles[i/4] = 1;
+            }
+            else if(c == Color.Blue)
+            {
+                //Pixel is a room tile
+                tiles[i/4] = 4;
+            }
+            else if(c == Color.Red)
             {
                 //Deal with being RED
                 int index = i/4;
@@ -109,7 +109,7 @@ class TileMap : Drawable, Transformable, Node
                 end = Vector2u(index%size, (index/size));
                 m_hasEnd = true;
             }
-            else
+            else if(c == Color.Green)
             {
                 //Deal with being GREEN
                 int index = i/4;
@@ -180,11 +180,6 @@ class TileMap : Drawable, Transformable, Node
                 // get the current tile number
                 int tileNumber = m_tiles[i + j * width];
 
-                if(tileNumber == EXIT || tileNumber == ENTRANCE)
-                {
-                    tileNumber = 0;
-                }
-
                 // find its position in the tileset texture
                 int tu = tileNumber % (m_tileset.getSize().x / tileSize.x);
                 int tv = tileNumber / (m_tileset.getSize().y / tileSize.y);
@@ -247,7 +242,6 @@ class TileMap : Drawable, Transformable, Node
         {
             m_tileCenter = newCenter;
 
-            debug writeln("New focused location: " ~ m_tileCenter.toString());
             updateFocusLocation();
 
             return m_tileCenter;
@@ -270,8 +264,8 @@ class TileMap : Drawable, Transformable, Node
 
         int tileNum = m_tiles[tile.x + tile.y * m_size.x];
 
-        //TODO improve this to work with any 'walkable' tiles...
-        return tileNum == 0 || tileNum == EXIT || tileNum == ENTRANCE;
+        //Set this to be for any type of non-walkable tiles...
+        return tileNum != 1;
     }
 
     bool isWalkable(Vector2u tile)
@@ -285,8 +279,8 @@ class TileMap : Drawable, Transformable, Node
 
         int tileNum = m_tiles[tile.x + tile.y * m_size.x];
 
-        //TODO improve this to work with any 'walkable' tiles...
-        return tileNum == 0 || tileNum == EXIT || tileNum == ENTRANCE;
+        //Set this to be for any type of non-walkable tiles...
+        return tileNum != 1;
     }
 
     bool canMove()
@@ -379,8 +373,6 @@ private:
     {
         this.position = Vector2f(m_tileCenter.x - cast(float)(m_focusedTile.x * m_tileSize.x) - (m_tileSize.x / 2),
                                  m_tileCenter.y - cast(float)(m_focusedTile.y * m_tileSize.y) - (m_tileSize.y / 2));
-
-        debug writeln("New location: " ~ position.toString());
     }
 
     void animateFocusLocation()
@@ -391,8 +383,6 @@ private:
         auto trasnlateAnim = new TranslationAnimation(this, milliseconds(100), this.position, nextLocation);
         trasnlateAnim.addUpdateListener(new MapAnimUpdateListener);
         runAnimation(trasnlateAnim);
-
-        debug writeln("New location: ", position);
     }
 
     void makeMove(Vector2u direction)
@@ -405,7 +395,6 @@ private:
             if(isWalkable(nextTile))
             {
                 m_focusedTile = nextTile;
-                debug writeln("New focused location: ", m_tileCenter);
                 animateFocusLocation();
             }
             else

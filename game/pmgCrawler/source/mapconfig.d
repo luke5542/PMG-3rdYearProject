@@ -84,7 +84,7 @@ MapGenConfig loadConfig(in string file)
     return config;
 }
 
-enum BotType { Random, SpeedRunner, Human }
+enum BotType { Random, SpeedRunner, Moron, Human }
 
 struct MapGenConfig
 {

@@ -25,6 +25,7 @@ class BotMapNode
     bool m_hasSeen;
     bool m_isGoal;
     bool m_isReachable = false;
+    bool m_isEdge = false;
     Vector2u m_location;
 
     this(Vector2u location, bool isWalkable)
@@ -432,6 +433,193 @@ class BlindBot : AStarBot
     // }
 }
 
+class BetterBlindBot : AStarBot
+{
+
+    private static immutable VISION_RADIUS = 10;
+
+    Vector2u m_endGoal;
+
+    this(shared TileMap map)
+    {
+        super(map);
+        m_useHasSeen = true;
+        m_endGoal = m_endLocation;
+        //setReachability(m_nodes, m_location);
+        updateHasSeen();
+    }
+
+    override Move makeNextMove()
+    {
+        //Selecting the current goal before doing other things...
+        debug writeln("Finding goal...");
+        setCurrentGoal();
+        debug writeln("Goal set to: ", m_endLocation);
+        debug writeln("Running A* search...");
+        auto move = super.makeNextMove();
+
+        updateHasSeen();
+
+        return move;
+    }
+
+    void setCurrentGoal()
+    {
+        //Start by seeing if we can get to the exit, which takes priority
+        if(m_nodes[m_endGoal.x][m_endGoal.y].m_hasSeen)
+        {
+            m_endLocation = m_endGoal;
+            return;
+        }
+
+
+        // Grab the goal as the nearest tile that is:
+        // walkable, has been seen, and is an edge.
+
+        // If we don't know where the exit is, we go to a random choice
+        // of all of the closest unseen and walkable tiles...
+        BotMapNode nearestNodes;
+        float closestDistance = float.max;
+        float curDist;
+        foreach(x; 0 .. m_sizeOfMap.x)
+        {
+            foreach(y; 0 .. m_sizeOfMap.y)
+            {
+                if(m_nodes[x][y].m_mapNode.m_isWalkable && m_nodes[x][y].m_isEdge)
+                {
+                    curDist = distanceTo(m_nodes[x][y].m_location, m_location);
+
+                    if(nearestNodes is null)
+                    {
+                        nearestNodes = m_nodes[x][y];
+                        closestDistance = curDist;
+
+                    }
+                    else if(curDist < closestDistance)
+                    {
+                        nearestNodes = m_nodes[x][y];
+                        closestDistance = curDist;
+                    }
+                    else if(curDist == closestDistance)
+                    {
+                        nearestNodes = m_nodes[x][y];
+                    }
+                }
+            }
+        }
+
+        m_endLocation = nearestNodes.m_location;
+    }
+
+    void updateHasSeen()
+    {
+        // Step 1: implement Ray Tracing over the area...
+        // Scope for this
+        {
+            int minX = m_location.x < VISION_RADIUS
+                        ? 0 : ((cast(int) m_location.x) - VISION_RADIUS);
+            int maxX = (m_location.x + VISION_RADIUS) >= m_sizeOfMap.x
+                        ? m_sizeOfMap.x : ((cast(int) m_location.x) + VISION_RADIUS);
+
+            int minY = m_location.y < VISION_RADIUS
+                        ? 0 : ((cast(int) m_location.y) - VISION_RADIUS);
+            int maxY = (m_location.y + VISION_RADIUS) >= m_sizeOfMap.y
+                        ? m_sizeOfMap.y : ((cast(int) m_location.y) + VISION_RADIUS);
+
+            //Get all walls in the area
+            FloatRect[] walls;
+            foreach(x; minX .. maxX)
+            {
+                foreach(y; minY .. maxY)
+                {
+                    if(!m_nodes[x][y].m_isWalkable)
+                    {
+                        walls ~= FloatRect(x - .5, y - .5, 1, 1);
+                    }
+                }
+            }
+
+            foreach(x; minX .. maxX)
+            {
+                foreach(y; minY .. maxY)
+                {
+                    foreach(rect; walls)
+                    {
+                        m_nodes[x][y].m_hasSeen = intersectsWall(m_nodes[x][y].m_location, m_location, rect);
+                    }
+                }
+            }
+        }
+
+        // Step 2: if any of the tiles in 3x3 grid are unknown, set to edge.
+        // Ignore the fact that it's a wall, since that's dealt with later.
+
+        int numNeighborsSeen;
+        foreach(x; minX .. maxX)
+        {
+            foreach(y; minY .. maxY)
+            {
+                numNeighborsSeen = 0;
+                foreach(x2; (x - 1) .. (x + 1))
+                {
+                    foreach(y2; (y - 1) .. (y + 1))
+                    {
+                        if(x2 >= 0 && y2 >= 0 && x2 < m_sizeOfMap.x
+                            && y2 < m_sizeOfMap.y && m_nodes[x2][y2].m_hasSeen)
+                        {
+                            numNeighborsSeen++;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    bool intersectsWall(Vector2u p1, Vector2u p2, FloatRect wall)
+    {
+        auto topLeft = Vector2f(wall.left, wall.top);
+        auto topRight = topLeft + Vector2f(wall.width, 0);
+        auto bottomRight = topLeft + Vector2f(wall.width, wall.height);
+        auto bottomLeft = topLeft + Vector2f(0, wall.height);
+
+        if(intersectsLine(p1, p2, topLeft, bottomLeft))
+        {
+            return true;
+        }
+        if(intersectsLine(p1, p2, bottomLeft, bottomRight))
+        {
+            return true;
+        }
+        if(intersectsLine(p1, p2, bottomRight, topRight))
+        {
+            return true;
+        }
+        if(intersectsLine(p1, p2, topLeft, topRight))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    // R1 and R2 are the points on the rectangle, l1 and l2 are points
+    // on the line we are intersecting with the rectangle.
+    bool intersectsLine(Vector2u l1, Vector2u l2, Vector2f r1, Vector2f r2)
+    {
+        float denom = (l1.x-l2.x)*(r1.y-r2.y) - (l1.y-l2.y)*(r1.x-r2.x);
+        if(denom != 0)
+        {
+            float xTop = (l1x*l2.y - l1.y*l2.x)*(r1.x-r2.x) - (l1.x-l2.x)*(r1x*r2.y - r1.y*r2.x);
+            float yTop = (l1x*l2.y - l1.y*l2.x)*(r1.y-r2.y) - (l1.y-l2.y)*(r1x*r2.y - r1.y*r2.x);
+
+            float pX = xTop / denom;
+            float pY = yTop / denom;
+
+            //Now check if the point is on the two line segments...
+        }
+    }
+}
+
 Bot initBot(shared TileMap map, MapGenConfig config)
 {
     Bot bot;
@@ -443,8 +631,11 @@ Bot initBot(shared TileMap map, MapGenConfig config)
         case BotType.SpeedRunner:
             bot = new AStarBot(map);
             break;
-        case BotType.Human:
+        case BotType.Moron:
             bot = new BlindBot(map);
+            break;
+        case BotType.Human:
+            bot = new BetterBlindBot(map);
             break;
     }
 

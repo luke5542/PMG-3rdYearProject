@@ -5,11 +5,13 @@ import std.conv;
 import std.random;
 import std.stdio;
 import std.math;
+import std.typecons;
 
 import dsfml.graphics;
 
 import ridgway.pmgcrawler.map;
 import ridgway.pmgcrawler.mapconfig;
+import ridgway.pmgcrawler.verification.path;
 
 //To be used as the message that will stop the execution of the bot.
 struct Exit {}
@@ -96,19 +98,23 @@ private:
         final switch(m)
         {
             case Move.UP:
-                m_location += Vector2u(0, -1);
+                if(m_location.y > 0)
+                    m_location += Vector2u(0, -1);
                 break;
 
             case Move.DOWN:
-                m_location += Vector2u(0, 1);
+                if(m_location.y < m_sizeOfMap.y - 1)
+                    m_location += Vector2u(0, 1);
                 break;
 
             case Move.LEFT:
-                m_location += Vector2u(-1, 0);
+                if(m_location.x > 0)
+                    m_location += Vector2u(-1, 0);
                 break;
 
             case Move.RIGHT:
-                m_location += Vector2u(1, 0);
+                if(m_location.x < m_sizeOfMap.x - 1)
+                    m_location += Vector2u(1, 0);
                 break;
         }
     }
@@ -191,7 +197,7 @@ float distanceTo(AStarMapNode first, AStarMapNode second)
 float distanceTo(Vector2u first, Vector2u second)
 {
     auto dist = first - second;
-    return sqrt(cast(float) dist.x * dist.x) + sqrt(cast(float) dist.y * dist.y);
+    return abs(dist.x) + abs(dist.y);//sqrt(cast(float) dist.x * dist.x) + sqrt(cast(float) dist.y * dist.y);//
 }
 
 class AStarBot : Bot
@@ -199,6 +205,8 @@ class AStarBot : Bot
     Vector2u m_endLocation;
     AStarMapNode[][] m_asNodes;
     bool m_useHasSeen = false;
+    Path m_path;
+    bool m_generatePath = true;
 
     this(shared TileMap map)
     {
@@ -208,6 +216,7 @@ class AStarBot : Bot
 
     override Move makeNextMove()
     {
+        
         auto move = getAStarMove(m_endLocation);
         applyMove(move);
 
@@ -439,11 +448,12 @@ class BetterBlindBot : AStarBot
     private static immutable VISION_RADIUS = 10;
 
     Vector2u m_endGoal;
+    bool m_goalFound = true;
 
     this(shared TileMap map)
     {
         super(map);
-        m_useHasSeen = true;
+        //m_useHasSeen = true;
         m_endGoal = m_endLocation;
         //setReachability(m_nodes, m_location);
         updateHasSeen();
@@ -453,12 +463,17 @@ class BetterBlindBot : AStarBot
     {
         //Selecting the current goal before doing other things...
         debug writeln("Finding goal...");
-        setCurrentGoal();
+        if(m_goalFound)
+        {
+            setCurrentGoal();
+        }
         debug writeln("Goal set to: ", m_endLocation);
         debug writeln("Running A* search...");
         auto move = super.makeNextMove();
 
         updateHasSeen();
+
+        writeln("Bot at location: ", m_location);
 
         return move;
     }
@@ -472,10 +487,8 @@ class BetterBlindBot : AStarBot
             return;
         }
 
-
         // Grab the goal as the nearest tile that is:
         // walkable, has been seen, and is an edge.
-
         // If we don't know where the exit is, we go to a random choice
         // of all of the closest unseen and walkable tiles...
         BotMapNode nearestNodes;
@@ -485,7 +498,7 @@ class BetterBlindBot : AStarBot
         {
             foreach(y; 0 .. m_sizeOfMap.y)
             {
-                if(m_nodes[x][y].m_mapNode.m_isWalkable && m_nodes[x][y].m_isEdge)
+                if(m_nodes[x][y].m_isWalkable && !m_nodes[x][y].m_hasSeen && hasWalkableEdgeNeighbor(x, y))
                 {
                     curDist = distanceTo(m_nodes[x][y].m_location, m_location);
 
@@ -509,73 +522,116 @@ class BetterBlindBot : AStarBot
         }
 
         m_endLocation = nearestNodes.m_location;
+        m_goalFound = false;
+    }
+
+    bool hasWalkableEdgeNeighbor(int x, int y)
+    {
+        if(x - 1 >= 0 && m_nodes[x - 1][y].m_isEdge && m_nodes[x - 1][y].m_isWalkable)
+        {
+            return true;
+        }
+        if(x + 1 < m_sizeOfMap.x && m_nodes[x + 1][y].m_isEdge && m_nodes[x + 1][y].m_isWalkable)
+        {
+            return true;
+        }
+        if(y - 1 >= 0 && m_nodes[x][y - 1].m_isEdge && m_nodes[x][y - 1].m_isWalkable)
+        {
+            return true;
+        }
+        if(y + 1 < m_sizeOfMap.y && m_nodes[x][y + 1].m_isEdge && m_nodes[x][y + 1].m_isWalkable)
+        {
+            return true;
+        }
+
+        return false;
     }
 
     void updateHasSeen()
     {
         // Step 1: implement Ray Tracing over the area...
-        // Scope for this
+        int minX = ((cast(int) m_location.x) - VISION_RADIUS) <= 0
+                    ? 0 : ((cast(int) m_location.x) - VISION_RADIUS);
+        int maxX = ((cast(int) m_location.x) + VISION_RADIUS) >= m_sizeOfMap.x
+                    ? m_sizeOfMap.x : ((cast(int) m_location.x) + VISION_RADIUS);
+
+        int minY = ((cast(int) m_location.y) - VISION_RADIUS) <= 0
+                    ? 0 : ((cast(int) m_location.y) - VISION_RADIUS);
+        int maxY = ((cast(int) m_location.y) + VISION_RADIUS) >= m_sizeOfMap.y
+                    ? m_sizeOfMap.y : ((cast(int) m_location.y) + VISION_RADIUS);
+
+        //Get all walls in the area
+        Tuple!(Vector2f, FloatRect)[] walls;
+        foreach(x; minX .. maxX)
         {
-            int minX = m_location.x < VISION_RADIUS
-                        ? 0 : ((cast(int) m_location.x) - VISION_RADIUS);
-            int maxX = (m_location.x + VISION_RADIUS) >= m_sizeOfMap.x
-                        ? m_sizeOfMap.x : ((cast(int) m_location.x) + VISION_RADIUS);
-
-            int minY = m_location.y < VISION_RADIUS
-                        ? 0 : ((cast(int) m_location.y) - VISION_RADIUS);
-            int maxY = (m_location.y + VISION_RADIUS) >= m_sizeOfMap.y
-                        ? m_sizeOfMap.y : ((cast(int) m_location.y) + VISION_RADIUS);
-
-            //Get all walls in the area
-            FloatRect[] walls;
-            foreach(x; minX .. maxX)
+            foreach(y; minY .. maxY)
             {
-                foreach(y; minY .. maxY)
+                if(!m_nodes[x][y].m_isWalkable)
                 {
-                    if(!m_nodes[x][y].m_isWalkable)
-                    {
-                        walls ~= FloatRect(x - .5, y - .5, 1, 1);
-                    }
+                    walls ~= Tuple!(Vector2f, FloatRect)(Vector2f(x, y), FloatRect(x - .5, y - .5, 1, 1));
                 }
             }
+        }
 
-            foreach(x; minX .. maxX)
+        auto floatLoc = Vector2f(m_location.x, m_location.y);
+        foreach(x; minX .. maxX)
+        {
+            foreach(y; minY .. maxY)
             {
-                foreach(y; minY .. maxY)
+                bool wallIntersects = false;
+                foreach(rect; walls)
                 {
-                    foreach(rect; walls)
+                    auto floatNodeLoc = Vector2f(m_nodes[x][y].m_location.x, m_nodes[x][y].m_location.y);
+                    if(rect[0] != floatNodeLoc)
                     {
-                        m_nodes[x][y].m_hasSeen = intersectsWall(m_nodes[x][y].m_location, m_location, rect);
+                        if(intersectsWall(floatLoc, floatNodeLoc, rect[1]))
+                        {
+                            wallIntersects = true;
+                            break;
+                        }
                     }
+                }
+
+                m_nodes[x][y].m_hasSeen = m_nodes[x][y].m_hasSeen || !wallIntersects;
+                if(!m_goalFound && Vector2u(x, y) == m_endLocation && m_nodes[x][y].m_hasSeen)
+                {
+                    m_goalFound = true;
                 }
             }
         }
 
         // Step 2: if any of the tiles in 3x3 grid are unknown, set to edge.
         // Ignore the fact that it's a wall, since that's dealt with later.
-
         int numNeighborsSeen;
+        int numNeighbors;
         foreach(x; minX .. maxX)
         {
             foreach(y; minY .. maxY)
             {
                 numNeighborsSeen = 0;
+                numNeighbors = 0;
                 foreach(x2; (x - 1) .. (x + 1))
                 {
                     foreach(y2; (y - 1) .. (y + 1))
                     {
                         if(x2 >= 0 && y2 >= 0 && x2 < m_sizeOfMap.x
-                            && y2 < m_sizeOfMap.y && m_nodes[x2][y2].m_hasSeen)
+                            && y2 < m_sizeOfMap.y)
                         {
-                            numNeighborsSeen++;
+                            if(m_nodes[x2][y2].m_hasSeen)
+                            {
+                                numNeighborsSeen++;
+                            }
+                            numNeighbors++;
                         }
                     }
                 }
+
+                m_nodes[x][y].m_isEdge = numNeighborsSeen != numNeighbors;
             }
         }
     }
 
-    bool intersectsWall(Vector2u p1, Vector2u p2, FloatRect wall)
+    bool intersectsWall(Vector2f p1, Vector2f p2, FloatRect wall)
     {
         auto topLeft = Vector2f(wall.left, wall.top);
         auto topRight = topLeft + Vector2f(wall.width, 0);
@@ -604,20 +660,56 @@ class BetterBlindBot : AStarBot
 
     // R1 and R2 are the points on the rectangle, l1 and l2 are points
     // on the line we are intersecting with the rectangle.
-    bool intersectsLine(Vector2u l1, Vector2u l2, Vector2f r1, Vector2f r2)
+    bool intersectsLine(Vector2f l1, Vector2f l2, Vector2f r1, Vector2f r2)
     {
-        float denom = (l1.x-l2.x)*(r1.y-r2.y) - (l1.y-l2.y)*(r1.x-r2.x);
+        double denom = (l1.x-l2.x)*(r1.y-r2.y) - (l1.y-l2.y)*(r1.x-r2.x);
         if(denom != 0)
         {
-            float xTop = (l1x*l2.y - l1.y*l2.x)*(r1.x-r2.x) - (l1.x-l2.x)*(r1x*r2.y - r1.y*r2.x);
-            float yTop = (l1x*l2.y - l1.y*l2.x)*(r1.y-r2.y) - (l1.y-l2.y)*(r1x*r2.y - r1.y*r2.x);
+            double xTop = (l1.x*l2.y - l1.y*l2.x)*(r1.x-r2.x) - (l1.x-l2.x)*(r1.x*r2.y - r1.y*r2.x);
+            double yTop = (l1.x*l2.y - l1.y*l2.x)*(r1.y-r2.y) - (l1.y-l2.y)*(r1.x*r2.y - r1.y*r2.x);
 
-            float pX = xTop / denom;
-            float pY = yTop / denom;
+            double pX = xTop / denom;
+            double pY = yTop / denom;
 
             //Now check if the point is on the two line segments...
+            auto point = Vector2f(pX, pY);
+            return distanceTo(l1, point) + distanceTo(l2, point) == distanceTo(l1, l2)
+                    && distanceTo(r1, point) + distanceTo(r2, point) == distanceTo(r1, r2);
         }
+
+        return false;
     }
+
+    bool intersectsLineNEW(Vector2f p1, Vector2f p2, Vector2f p3, Vector2f p4)
+    {
+        double l1xDiff = p2.x - p1.x;
+        double l2xDiff = p4.x - p3.x;
+        double l1yDiff = p2.y - p1.y;
+        double l2yDiff = p4.y - p3.y;
+
+        double denom = l1yDiff/l1xDiff - l2yDiff/l2xDiff;
+        if(denom != 0)
+        {
+            double xTop = (p1.x * l1yDiff) / l1xDiff - (p3.x * l2yDiff) / l2xDiff + p3.y - p1.y;
+
+            double pX = xTop / denom;
+
+            double pY = (l1yDiff / l1xDiff) * (pX - p1.x) + p1.y;
+
+            //Now check if the point is on the two line segments...
+            auto point = Vector2f(pX, pY);
+            return distanceTo(p1, point) + distanceTo(p2, point) == distanceTo(p1, p2)
+                    && distanceTo(p3, point) + distanceTo(p4, point) == distanceTo(p3, p4);
+        }
+
+        return false;
+    }
+}
+
+float distanceTo(Vector2f first, Vector2f second)
+{
+    auto dist = first - second;
+    return sqrt(dist.x * dist.x) + sqrt(dist.y * dist.y);
 }
 
 Bot initBot(shared TileMap map, MapGenConfig config)

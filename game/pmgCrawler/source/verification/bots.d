@@ -197,7 +197,7 @@ float distanceTo(AStarMapNode first, AStarMapNode second)
 float distanceTo(Vector2u first, Vector2u second)
 {
     auto dist = first - second;
-    return abs(dist.x) + abs(dist.y);//sqrt(cast(float) dist.x * dist.x) + sqrt(cast(float) dist.y * dist.y);//
+    return abs(dist.x) + abs(dist.y);//sqrt((cast(float) dist.x * dist.x) + (cast(float) dist.y * dist.y));//
 }
 
 class AStarBot : Bot
@@ -216,8 +216,14 @@ class AStarBot : Bot
 
     override Move makeNextMove()
     {
-        
-        auto move = getAStarMove(m_endLocation);
+        if(m_generatePath)
+        {
+            m_path = getAStarMove(m_endLocation);
+            debug writeln("Generating path...");
+            m_generatePath = false;
+        }
+        //auto move = getAStarMove(m_endLocation);
+        auto move = m_path.pop();
         applyMove(move);
 
         debug writeln("making move ", move);
@@ -238,7 +244,7 @@ class AStarBot : Bot
         }
     }
 
-    Move getAStarMove(Vector2u goal)
+    Path getAStarMove(Vector2u goal)
     {
         initASMap(goal);
         AStarMapNode[] unvisitedNodes;
@@ -257,7 +263,8 @@ class AStarBot : Bot
             if(currentNode.m_mapNode.m_location == goal)
             {
                 //we have found our goal... yay...
-                return getMoveFromNode(currentNode);
+                //return getMoveFromNode(currentNode);
+                return getPathFromNode(currentNode);
             }
 
             int distance = currentNode.m_distance + 1;
@@ -281,7 +288,7 @@ class AStarBot : Bot
 
         debug writeln("No move found...");
 
-        return Move.min;
+        return Path.init;
     }
 
     Move getMoveFromNode(AStarMapNode currentNode)
@@ -294,6 +301,20 @@ class AStarBot : Bot
         }
 
         return currentNode.m_moveToHere;
+    }
+
+    Path getPathFromNode(AStarMapNode currentNode)
+    {
+        auto path = Path();
+        while(currentNode !is null && currentNode.m_parent !is null
+                && currentNode.m_parent.m_parent !is null)
+        {
+            path.push(currentNode.m_moveToHere);
+            currentNode = currentNode.m_parent;
+        }
+
+        path.push(currentNode.m_moveToHere);
+        return path;
     }
 
     AStarMapNode[] getNeighbors(AStarMapNode[][] nodes, int x, int y, int distance)
@@ -346,6 +367,7 @@ class BlindBot : AStarBot
         //Selecting the current goal before doing other things...
         debug writeln("Finding goal...");
         setCurrentGoal();
+        m_generatePath = true;
         debug writeln("Goal set to: ", m_endLocation);
         debug writeln("Running A* search...");
         auto move = super.makeNextMove();
@@ -466,6 +488,7 @@ class BetterBlindBot : AStarBot
         if(m_goalFound)
         {
             setCurrentGoal();
+            m_generatePath = true;
         }
         debug writeln("Goal set to: ", m_endLocation);
         debug writeln("Running A* search...");
@@ -506,16 +529,11 @@ class BetterBlindBot : AStarBot
                     {
                         nearestNodes = m_nodes[x][y];
                         closestDistance = curDist;
-
                     }
-                    else if(curDist < closestDistance)
+                    else if(curDist <= closestDistance)
                     {
                         nearestNodes = m_nodes[x][y];
                         closestDistance = curDist;
-                    }
-                    else if(curDist == closestDistance)
-                    {
-                        nearestNodes = m_nodes[x][y];
                     }
                 }
             }
@@ -578,21 +596,25 @@ class BetterBlindBot : AStarBot
         {
             foreach(y; minY .. maxY)
             {
-                bool wallIntersects = false;
-                foreach(rect; walls)
+                if(!m_nodes[x][y].m_hasSeen)
                 {
-                    auto floatNodeLoc = Vector2f(m_nodes[x][y].m_location.x, m_nodes[x][y].m_location.y);
-                    if(rect[0] != floatNodeLoc)
+                    bool wallIntersects = false;
+                    foreach(rect; walls)
                     {
-                        if(intersectsWall(floatLoc, floatNodeLoc, rect[1]))
+                        auto floatNodeLoc = Vector2f(m_nodes[x][y].m_location.x, m_nodes[x][y].m_location.y);
+                        if(rect[0] != floatNodeLoc)
                         {
-                            wallIntersects = true;
-                            break;
+                            if(intersectsWall(floatLoc, floatNodeLoc, rect[1]))
+                            {
+                                wallIntersects = true;
+                                break;
+                            }
                         }
                     }
-                }
 
-                m_nodes[x][y].m_hasSeen = m_nodes[x][y].m_hasSeen || !wallIntersects;
+                    m_nodes[x][y].m_hasSeen = m_nodes[x][y].m_hasSeen || !wallIntersects;
+                }
+                
                 if(!m_goalFound && Vector2u(x, y) == m_endLocation && m_nodes[x][y].m_hasSeen)
                 {
                     m_goalFound = true;
@@ -638,19 +660,19 @@ class BetterBlindBot : AStarBot
         auto bottomRight = topLeft + Vector2f(wall.width, wall.height);
         auto bottomLeft = topLeft + Vector2f(0, wall.height);
 
-        if(intersectsLine(p1, p2, topLeft, bottomLeft))
+        if(intersectsLineNEW(p1, p2, topLeft, bottomLeft))
         {
             return true;
         }
-        if(intersectsLine(p1, p2, bottomLeft, bottomRight))
+        if(intersectsLineNEW(p1, p2, bottomLeft, bottomRight))
         {
             return true;
         }
-        if(intersectsLine(p1, p2, bottomRight, topRight))
+        if(intersectsLineNEW(p1, p2, bottomRight, topRight))
         {
             return true;
         }
-        if(intersectsLine(p1, p2, topLeft, topRight))
+        if(intersectsLineNEW(p1, p2, topLeft, topRight))
         {
             return true;
         }
@@ -709,7 +731,7 @@ class BetterBlindBot : AStarBot
 float distanceTo(Vector2f first, Vector2f second)
 {
     auto dist = first - second;
-    return sqrt(dist.x * dist.x) + sqrt(dist.y * dist.y);
+    return sqrt((dist.x * dist.x) + (dist.y * dist.y));
 }
 
 Bot initBot(shared TileMap map, MapGenConfig config)

@@ -1,5 +1,7 @@
 module ridgway.pmgcrawler.verification.path;
 
+import std.container;
+
 import ridgway.pmgcrawler.map;
 
 struct Path
@@ -7,6 +9,11 @@ struct Path
     private
     {
         DList!Move m_moves;
+    }
+
+    bool hasMove()
+    {
+        return !m_moves.empty;
     }
 
     //Adds item to the list

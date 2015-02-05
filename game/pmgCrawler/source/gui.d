@@ -215,8 +215,8 @@ class DemoMapGUI : TileMapGUI
     void beginNewMap()
     {
         generateMap();
-        //m_demoBotThread = spawnLinked(&runBotThread, cast(shared(TileMap)) m_tileMap, m_config);
-        bot = initBot(cast(shared(TileMap)) m_tileMap, m_config);
+        m_demoBotThread = spawnLinked(&runBotThread, cast(shared(TileMap)) m_tileMap, m_config);
+        //bot = initBot(cast(shared(TileMap)) m_tileMap, m_config);
     }
 
     void generateMap()
@@ -278,31 +278,31 @@ class DemoMapGUI : TileMapGUI
                 //We are done, and can exit...
                 writeln("Successfully reached the end of the map! Exitting...");
                 //exit(0);
-                //m_demoBotThread.send(Exit());
+                m_demoBotThread.send(Exit());
                 beginNewMap();
             }
             else
             {
-                // try
-                // {
-                //     if(!m_sentMoveRequest)
-                //     {
-                //         m_demoBotThread.send(GetMove());
-                //         m_sentMoveRequest = true;
-                //     }
-                //     receiveTimeout( 10.usecs,
-                //                     (Move move) {
-                //                         m_tileMap.makeMove(move);
-                //                         m_sentMoveRequest = false;
-                //                         debug writeln("Moved to: ", m_tileMap.focusedTile);
-                //                     });
-                // }
-                // catch(LinkTerminated exc)
-                // {
-                //   debug writeln("Bot thread has died...");
-                //   exit(1);
-                // }
-                m_tileMap.makeMove(bot.makeNextMove());
+                try
+                {
+                    if(!m_sentMoveRequest)
+                    {
+                        m_demoBotThread.send(GetMove());
+                        m_sentMoveRequest = true;
+                    }
+                    receiveTimeout( 10.usecs,
+                                    (Move move) {
+                                        m_tileMap.makeMove(move);
+                                        m_sentMoveRequest = false;
+                                        debug writeln("Moved to: ", m_tileMap.focusedTile);
+                                    });
+                }
+                catch(LinkTerminated exc)
+                {
+                  debug writeln("Bot thread has died...");
+                  exit(1);
+                }
+                //m_tileMap.makeMove(bot.makeNextMove());
             }
         }
 

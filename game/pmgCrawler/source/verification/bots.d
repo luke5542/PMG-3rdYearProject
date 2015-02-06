@@ -1,6 +1,7 @@
 module ridgway.pmgcrawler.verification.bots;
 
 import std.concurrency;
+import std.algorithm;
 import std.conv;
 import std.random;
 import std.stdio;
@@ -12,6 +13,7 @@ import dsfml.graphics;
 import ridgway.pmgcrawler.map;
 import ridgway.pmgcrawler.mapconfig;
 import ridgway.pmgcrawler.verification.path;
+import ridgway.pmgcrawler.verification.ray;
 
 //To be used as the message that will stop the execution of the bot.
 struct Exit {}
@@ -90,6 +92,27 @@ class Bot
     }
 
     abstract Move makeNextMove();
+
+    void setTileColors(TileMap map)
+    {
+        foreach(x; 0 .. m_nodes.length)
+        {
+            foreach(y; 0 .. m_nodes[x].length)
+            {
+                Color c = Color.White;
+                if(m_nodes[x][y].m_isEdge)
+                {
+                    c = Color.Yellow;
+                }
+                else if(!m_nodes[x][y].m_hasSeen)
+                {
+                    c = Color(100, 100, 100, 255);
+                }
+
+                map.setTileColor(Vector2u(cast(uint) x, cast(uint) y), c);
+            }
+        }
+    }
 
 private:
 
@@ -172,7 +195,7 @@ class AStarMapNode
     BotMapNode m_mapNode;
     AStarMapNode m_parent;
     int m_distance = int.max;
-    float m_distanceTo;
+    int m_distanceTo = 0;
     bool m_visited = false;
     Move m_moveToHere;
 
@@ -189,12 +212,12 @@ class AStarMapNode
     }
 }
 
-float distanceTo(AStarMapNode first, AStarMapNode second)
+int distanceTo(AStarMapNode first, AStarMapNode second)
 {
     return distanceTo(first.m_mapNode.m_location, second.m_mapNode.m_location);
 }
 
-float distanceTo(Vector2u first, Vector2u second)
+int distanceTo(Vector2u first, Vector2u second)
 {
     auto dist = first - second;
     return abs(dist.x) + abs(dist.y);//sqrt((cast(float) dist.x * dist.x) + (cast(float) dist.y * dist.y));//
@@ -214,6 +237,13 @@ class AStarBot : Bot
         m_endLocation = map.getPlayerEnd();
     }
 
+    override void setTileColors(TileMap map)
+    {
+        super.setTileColors(map);
+
+        m_path.drawPath(map, m_location);
+    }
+
     override Move makeNextMove()
     {
         if(m_generatePath)
@@ -223,7 +253,7 @@ class AStarBot : Bot
             m_generatePath = false;
         }
         //auto move = getAStarMove(m_endLocation);
-        auto move = m_path.pop();
+        auto move = m_path.hasMove() ? m_path.pop() : Move.min;
         applyMove(move);
 
         debug writeln("making move ", move);
@@ -283,7 +313,8 @@ class AStarBot : Bot
                     }
                 }
             }
-            unvisitedNodes.sort;
+            bool nodeComp(AStarMapNode n1, AStarMapNode n2) { return n1 < n2; }
+            sort!nodeComp(unvisitedNodes);
         }
 
         debug writeln("No move found...");
@@ -467,7 +498,7 @@ class BlindBot : AStarBot
 class BetterBlindBot : AStarBot
 {
 
-    private static immutable VISION_RADIUS = 10;
+    private static immutable VISION_RADIUS = 5;
 
     Vector2u m_endGoal;
     bool m_goalFound = true;
@@ -484,14 +515,13 @@ class BetterBlindBot : AStarBot
     override Move makeNextMove()
     {
         //Selecting the current goal before doing other things...
-        debug writeln("Finding goal...");
         if(m_goalFound)
         {
+            debug writeln("Finding goal...");
             setCurrentGoal();
             m_generatePath = true;
+            debug writeln("Goal set to: ", m_endLocation);
         }
-        debug writeln("Goal set to: ", m_endLocation);
-        debug writeln("Running A* search...");
         auto move = super.makeNextMove();
 
         updateHasSeen();
@@ -539,8 +569,11 @@ class BetterBlindBot : AStarBot
             }
         }
 
-        m_endLocation = nearestNodes.m_location;
-        m_goalFound = false;
+        if(nearestNodes !is null)
+        {
+            m_endLocation = nearestNodes.m_location;
+            m_goalFound = false;
+        }
     }
 
     bool hasWalkableEdgeNeighbor(int x, int y)
@@ -570,28 +603,34 @@ class BetterBlindBot : AStarBot
         // Step 1: implement Ray Tracing over the area...
         int minX = ((cast(int) m_location.x) - VISION_RADIUS) <= 0
                     ? 0 : ((cast(int) m_location.x) - VISION_RADIUS);
-        int maxX = ((cast(int) m_location.x) + VISION_RADIUS) >= m_sizeOfMap.x
-                    ? m_sizeOfMap.x : ((cast(int) m_location.x) + VISION_RADIUS);
+        int maxX = ((cast(int) m_location.x) + VISION_RADIUS + 1) >= m_sizeOfMap.x
+                    ? m_sizeOfMap.x : ((cast(int) m_location.x) + VISION_RADIUS + 1);
 
         int minY = ((cast(int) m_location.y) - VISION_RADIUS) <= 0
                     ? 0 : ((cast(int) m_location.y) - VISION_RADIUS);
-        int maxY = ((cast(int) m_location.y) + VISION_RADIUS) >= m_sizeOfMap.y
-                    ? m_sizeOfMap.y : ((cast(int) m_location.y) + VISION_RADIUS);
+        int maxY = ((cast(int) m_location.y) + VISION_RADIUS + 1) >= m_sizeOfMap.y
+                    ? m_sizeOfMap.y : ((cast(int) m_location.y) + VISION_RADIUS + 1);
+
+        debug writeln("MinX: ", minX);
+        debug writeln("MaxX: ", maxX);
+        debug writeln("MinY: ", minY);
+        debug writeln("MaxY: ", maxY);
 
         //Get all walls in the area
-        Tuple!(Vector2f, FloatRect)[] walls;
-        foreach(x; minX .. maxX)
-        {
-            foreach(y; minY .. maxY)
-            {
-                if(!m_nodes[x][y].m_isWalkable)
-                {
-                    walls ~= Tuple!(Vector2f, FloatRect)(Vector2f(x, y), FloatRect(x - .5, y - .5, 1, 1));
-                }
-            }
-        }
+        // Tuple!(Vector2f, FloatRect)[] walls;
+        // foreach(x; minX .. maxX)
+        // {
+        //     foreach(y; minY .. maxY)
+        //     {
+        //         if(!m_nodes[x][y].m_isWalkable)
+        //         {
+        //             walls ~= Tuple!(Vector2f, FloatRect)(Vector2f(x, y), FloatRect(x - .5, y - .5, 1, 1));
+        //         }
+        //     }
+        // }
 
         auto floatLoc = Vector2f(m_location.x, m_location.y);
+        auto locRect = FloatRect(m_location.x - .5, m_location.y - .5, 1, 1);
         foreach(x; minX .. maxX)
         {
             foreach(y; minY .. maxY)
@@ -599,22 +638,47 @@ class BetterBlindBot : AStarBot
                 if(!m_nodes[x][y].m_hasSeen)
                 {
                     bool wallIntersects = false;
-                    foreach(rect; walls)
+                    // auto floatNodeLoc = Vector2f(m_nodes[x][y].m_location.x, m_nodes[x][y].m_location.y);
+                    // foreach(rect; walls)
+                    // {
+                    //     if(rect[0] != floatNodeLoc)
+                    //     {
+                    //         if(intersectsWall(floatLoc, floatNodeLoc, rect[1]))
+                    //         {
+                    //             wallIntersects = true;
+                    //             break;
+                    //         }
+                    //     }
+                    // }
+
+                    writeln("Making ray from: ", Vector2f(x, y),
+                            ", with direction: ", Vector2f((cast(float) m_location.x) - x, (cast(float) m_location.y) - y));
+
+                    Ray ray = Ray(Vector2f(x, y),
+                                  Vector2f((cast(float) m_location.x) - (cast(float) x),
+                                           (cast(float) m_location.y) - (cast(float) y)));
+                    ulong rayX, rayY;
+                    while(!locRect.contains(ray.m_start) && !wallIntersects)
                     {
-                        auto floatNodeLoc = Vector2f(m_nodes[x][y].m_location.x, m_nodes[x][y].m_location.y);
-                        if(rect[0] != floatNodeLoc)
+                        auto vec = ray.nextLocation(.5);
+                        rayX = cast(ulong) round(vec.x);
+                        rayY = cast(ulong) round(vec.y);
+                        writeln("Checking point: ", Vector2!ulong(rayX, rayY), ", walkable - ", m_nodes[rayX][rayY].m_isWalkable);
+                        if(!(rayX == x && rayY == y) && !m_nodes[rayX][rayY].m_isWalkable)
                         {
-                            if(intersectsWall(floatLoc, floatNodeLoc, rect[1]))
-                            {
-                                wallIntersects = true;
-                                break;
-                            }
+                            wallIntersects = true;
                         }
                     }
 
-                    m_nodes[x][y].m_hasSeen = m_nodes[x][y].m_hasSeen || !wallIntersects;
+                    m_nodes[x][y].m_hasSeen = !wallIntersects;
                 }
-                
+                else
+                {
+                    writeln("Already seen ", Vector2f(x, y));
+                }
+
+                //writeln(Vector2u(x, y), " - seen: ", m_nodes[x][y].m_hasSeen);
+
                 if(!m_goalFound && Vector2u(x, y) == m_endLocation && m_nodes[x][y].m_hasSeen)
                 {
                     m_goalFound = true;
@@ -632,23 +696,28 @@ class BetterBlindBot : AStarBot
             {
                 numNeighborsSeen = 0;
                 numNeighbors = 0;
-                foreach(x2; (x - 1) .. (x + 1))
+                if(m_nodes[x][y].m_isWalkable)
                 {
-                    foreach(y2; (y - 1) .. (y + 1))
+                    foreach(x2; (x > 0 ? x - 1 : x) .. (x + 2))
                     {
-                        if(x2 >= 0 && y2 >= 0 && x2 < m_sizeOfMap.x
-                            && y2 < m_sizeOfMap.y)
+                        foreach(y2; (y > 0 ? y - 1 : y) .. (y + 2))
                         {
-                            if(m_nodes[x2][y2].m_hasSeen)
+                            if(x2 < m_sizeOfMap.x
+                                && y2 < m_sizeOfMap.y)
                             {
-                                numNeighborsSeen++;
+                                if(m_nodes[x2][y2].m_hasSeen)
+                                {
+                                    numNeighborsSeen++;
+                                }
+                                numNeighbors++;
                             }
-                            numNeighbors++;
                         }
                     }
                 }
 
-                m_nodes[x][y].m_isEdge = numNeighborsSeen != numNeighbors;
+                m_nodes[x][y].m_isEdge = m_nodes[x][y].m_hasSeen
+                                        && (!m_nodes[x][y].m_isWalkable
+                                            || numNeighborsSeen != numNeighbors);
             }
         }
     }
@@ -731,7 +800,7 @@ class BetterBlindBot : AStarBot
 float distanceTo(Vector2f first, Vector2f second)
 {
     auto dist = first - second;
-    return sqrt((dist.x * dist.x) + (dist.y * dist.y));
+    return abs(dist.x) + abs(dist.y);//sqrt((dist.x * dist.x) + (dist.y * dist.y));
 }
 
 Bot initBot(shared TileMap map, MapGenConfig config)

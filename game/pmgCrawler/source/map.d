@@ -206,6 +206,16 @@ class TileMap : Drawable, Transformable, Node
         return true;
     }
 
+    void setTileColor(Vector2u loc, Color c)
+    {
+        uint quad = (loc.x + loc.y * m_size.x) * 4;
+
+        m_vertices[quad + 0].color = c;
+        m_vertices[quad + 1].color = c;
+        m_vertices[quad + 2].color = c;
+        m_vertices[quad + 3].color = c;
+    }
+
     /// This sets to currently focused tile in the tile map.
     /// It sets the position for this tile map, so don't manually set the position.
     @property

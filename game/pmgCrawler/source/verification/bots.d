@@ -21,6 +21,10 @@ struct Exit {}
 //To be used exclusively as a message passed to this thread to retrieve the Move
 struct GetMove {}
 
+//To be used exclusively as a message passed to this thread to retrieve the Move
+struct GetTileColors {}
+struct TileColors { Color[][] colors; }
+
 //This class represents the nodes for the internal map for the bots.
 class BotMapNode
 {
@@ -93,25 +97,28 @@ class Bot
 
     abstract Move makeNextMove();
 
-    void setTileColors(TileMap map)
+    Color[][] getTileColors()
     {
+        auto colors = new Color[][m_nodes.length];
+
         foreach(x; 0 .. m_nodes.length)
         {
+            colors[x] = new Color[m_nodes[x].length];
             foreach(y; 0 .. m_nodes[x].length)
             {
-                Color c = Color.White;
+                colors[x][y] = Color.White;
                 if(m_nodes[x][y].m_isEdge)
                 {
-                    c = Color.Yellow;
+                    colors[x][y] = Color.Yellow;
                 }
                 else if(!m_nodes[x][y].m_hasSeen)
                 {
-                    c = Color(100, 100, 100, 255);
+                    colors[x][y] = Color(100, 100, 100, 255);
                 }
-
-                map.setTileColor(Vector2u(cast(uint) x, cast(uint) y), c);
             }
         }
+
+        return colors;
     }
 
 private:
@@ -205,6 +212,12 @@ class AStarMapNode
         m_distanceTo = distanceTo(this.m_mapNode.m_location, goal);
     }
 
+    this(BotMapNode node)
+    {
+        m_mapNode = node;
+        m_distanceTo = 0;
+    }
+
     override int opCmp(Object other)
     {
         auto otherASN = cast(AStarMapNode) other;
@@ -237,11 +250,13 @@ class AStarBot : Bot
         m_endLocation = map.getPlayerEnd();
     }
 
-    override void setTileColors(TileMap map)
+    override Color[][] getTileColors()
     {
-        super.setTileColors(map);
+        auto colors = super.getTileColors();
 
-        m_path.drawPath(map, m_location);
+        m_path.drawPath(colors, m_location);
+
+        return colors;
     }
 
     override Move makeNextMove()
@@ -518,7 +533,8 @@ class BetterBlindBot : AStarBot
         if(m_goalFound)
         {
             debug writeln("Finding goal...");
-            setCurrentGoal();
+            //setCurrentGoal();
+            setClosestNodeDijkstras();
             m_generatePath = true;
             debug writeln("Goal set to: ", m_endLocation);
         }
@@ -545,7 +561,7 @@ class BetterBlindBot : AStarBot
         // If we don't know where the exit is, we go to a random choice
         // of all of the closest unseen and walkable tiles...
         BotMapNode nearestNodes;
-        float closestDistance = float.max;
+        float closestDistance = m_sizeOfMap.x*2;
         float curDist;
         foreach(x; 0 .. m_sizeOfMap.x)
         {
@@ -560,7 +576,7 @@ class BetterBlindBot : AStarBot
                         nearestNodes = m_nodes[x][y];
                         closestDistance = curDist;
                     }
-                    else if(curDist <= closestDistance)
+                    else if(curDist < closestDistance)
                     {
                         nearestNodes = m_nodes[x][y];
                         closestDistance = curDist;
@@ -611,10 +627,10 @@ class BetterBlindBot : AStarBot
         int maxY = ((cast(int) m_location.y) + VISION_RADIUS + 1) >= m_sizeOfMap.y
                     ? m_sizeOfMap.y : ((cast(int) m_location.y) + VISION_RADIUS + 1);
 
-        debug writeln("MinX: ", minX);
-        debug writeln("MaxX: ", maxX);
-        debug writeln("MinY: ", minY);
-        debug writeln("MaxY: ", maxY);
+        // debug writeln("MinX: ", minX);
+        // debug writeln("MaxX: ", maxX);
+        // debug writeln("MinY: ", minY);
+        // debug writeln("MaxY: ", maxY);
 
         //Get all walls in the area
         // Tuple!(Vector2f, FloatRect)[] walls;
@@ -651,8 +667,8 @@ class BetterBlindBot : AStarBot
                     //     }
                     // }
 
-                    writeln("Making ray from: ", Vector2f(x, y),
-                            ", with direction: ", Vector2f((cast(float) m_location.x) - x, (cast(float) m_location.y) - y));
+                    // writeln("Making ray from: ", Vector2f(x, y),
+                    //         ", with direction: ", Vector2f((cast(float) m_location.x) - x, (cast(float) m_location.y) - y));
 
                     Ray ray = Ray(Vector2f(x, y),
                                   Vector2f((cast(float) m_location.x) - (cast(float) x),
@@ -663,7 +679,7 @@ class BetterBlindBot : AStarBot
                         auto vec = ray.nextLocation(.5);
                         rayX = cast(ulong) round(vec.x);
                         rayY = cast(ulong) round(vec.y);
-                        writeln("Checking point: ", Vector2!ulong(rayX, rayY), ", walkable - ", m_nodes[rayX][rayY].m_isWalkable);
+                        //writeln("Checking point: ", Vector2!ulong(rayX, rayY), ", walkable - ", m_nodes[rayX][rayY].m_isWalkable);
                         if(!(rayX == x && rayY == y) && !m_nodes[rayX][rayY].m_isWalkable)
                         {
                             wallIntersects = true;
@@ -674,7 +690,7 @@ class BetterBlindBot : AStarBot
                 }
                 else
                 {
-                    writeln("Already seen ", Vector2f(x, y));
+                    //writeln("Already seen ", Vector2f(x, y));
                 }
 
                 //writeln(Vector2u(x, y), " - seen: ", m_nodes[x][y].m_hasSeen);
@@ -795,12 +811,108 @@ class BetterBlindBot : AStarBot
 
         return false;
     }
+
+    void initASMap()
+    {
+        m_asNodes = new AStarMapNode[][m_nodes.length];
+        foreach(x; 0..m_nodes.length)
+        {
+            m_asNodes[x] = new AStarMapNode[m_nodes[x].length];
+            foreach(y; 0..m_nodes[x].length)
+            {
+                m_asNodes[x][y] = new AStarMapNode(m_nodes[x][y]);
+            }
+        }
+    }
+
+    void setClosestNodeDijkstras()
+    {
+        //Start by seeing if we can get to the exit, which takes priority
+        if(m_nodes[m_endGoal.x][m_endGoal.y].m_hasSeen)
+        {
+            m_endLocation = m_endGoal;
+            return;
+        }
+        
+        initASMap();
+        AStarMapNode[] unvisitedNodes;
+
+        auto root = m_asNodes[m_location.x][m_location.y];
+        root.m_distance = 0;
+        root.m_parent = null;
+        unvisitedNodes ~= root;
+
+        while(unvisitedNodes.length > 0)
+        {
+            auto currentNode = unvisitedNodes[$-1];
+            currentNode.m_visited = true;
+            unvisitedNodes = unvisitedNodes[0 .. $-1];
+
+            int distance = currentNode.m_distance + 1;
+            auto neighbors = getNeighbors(m_asNodes, currentNode.m_mapNode.m_location.x,
+                                            currentNode.m_mapNode.m_location.y, distance);
+            foreach(node; neighbors)
+            {
+                if(node.m_mapNode.m_isWalkable)
+                {
+                    node.m_distance = distance;
+                    node.m_parent = currentNode;
+
+                    if(!node.m_visited && (!m_useHasSeen || node.m_mapNode.m_hasSeen))
+                    {
+                        unvisitedNodes ~= node;
+                    }
+                }
+            }
+            bool nodeComp(AStarMapNode n1, AStarMapNode n2) { return n1 < n2; }
+            sort!nodeComp(unvisitedNodes);
+        }
+
+        setGoalFromNodes();
+    }
+
+    void setGoalFromNodes()
+    {
+        AStarMapNode nearestNodes;
+        float closestDistance = m_sizeOfMap.x*2;
+        float curDist;
+        foreach(x; 0 .. m_sizeOfMap.x)
+        {
+            foreach(y; 0 .. m_sizeOfMap.y)
+            {
+                if(m_asNodes[x][y].m_mapNode.m_isWalkable
+                    && !m_asNodes[x][y].m_mapNode.m_hasSeen
+                    && hasWalkableEdgeNeighbor(x, y))
+                {
+                    curDist = m_asNodes[x][y].m_distance;
+
+                    if(nearestNodes is null)
+                    {
+                        nearestNodes = m_asNodes[x][y];
+                        closestDistance = curDist;
+                    }
+                    else if(curDist < closestDistance)
+                    {
+                        nearestNodes = m_asNodes[x][y];
+                        closestDistance = curDist;
+                    }
+                }
+            }
+        }
+
+        if(nearestNodes !is null)
+        {
+            m_endLocation = nearestNodes.m_mapNode.m_location;
+            m_goalFound = false;
+        }
+    }
 }
 
 float distanceTo(Vector2f first, Vector2f second)
 {
-    auto dist = first - second;
-    return abs(dist.x) + abs(dist.y);//sqrt((dist.x * dist.x) + (dist.y * dist.y));
+    auto x = second.x - first.x;
+    auto y = second.y - first.y;
+    return abs(x) + abs(y);//sqrt((dist.x * dist.x) + (dist.y * dist.y));
 }
 
 Bot initBot(shared TileMap map, MapGenConfig config)
@@ -843,6 +955,11 @@ void runBotThread(shared TileMap map, MapGenConfig config)
                     },
                     (GetMove message) {
                         ownerTid.send(move);
+                    },
+                    (GetTileColors message) {
+                        writeln("sending colors...");
+                        immutable TileColors tc = cast(immutable(TileColors)) TileColors(bot.getTileColors());
+                        ownerTid.send(tc);
                     });
         }
         catch(OwnerTerminated exc)

@@ -32,7 +32,7 @@ struct Path
         return m;
     }
 
-    void drawPath(TileMap map, Vector2u location)
+    void drawPath(ref Color[][] colors, Vector2u location)
     {
         Vector2u curLoc = location;
         foreach(move; m_moves)
@@ -57,7 +57,7 @@ struct Path
             }
 
             //Set that location as red...
-            map.setTileColor(curLoc, Color.Red);
+            colors[curLoc.x][curLoc.y] = Color.Red;
         }
     }
 }

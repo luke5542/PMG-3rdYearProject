@@ -75,8 +75,6 @@ class TileMap : Drawable, Transformable, Node
         Vector2u start, end;
         int size = cast(int) sqrt(pixelArray.length / 4.0);
 
-        debug writeln("loadFromImage() Size: ", size);
-
         for(int i = 0; i < pixelArray.length; i += 4)
         {
             Color c = Color(pixelArray[i], pixelArray[i+1], pixelArray[i+2], pixelArray[i+3]);
@@ -101,11 +99,6 @@ class TileMap : Drawable, Transformable, Node
                 int index = i/4;
                 tiles[index] = EXIT;
 
-                debug writeln("Red Index: ", index,
-                                " Loc: (", index%size,
-                                ",", (index/size),
-                                ")");
-
                 end = Vector2u(index%size, (index/size));
                 m_hasEnd = true;
             }
@@ -114,11 +107,6 @@ class TileMap : Drawable, Transformable, Node
                 //Deal with being GREEN
                 int index = i/4;
                 tiles[index] = ENTRANCE;
-
-                debug writeln("Green Index: ", index,
-                                " Loc: (", index%size,
-                                ",", (index/size),
-                                ")");
 
                 start = Vector2u(index%size, (index/size));
                 m_hasStart = true;
@@ -171,7 +159,6 @@ class TileMap : Drawable, Transformable, Node
         // resize the vertex array to fit the level size
         m_vertices = new VertexArray(PrimitiveType.Quads, width * height * 4);
 
-        debug writeln("Setting tiles...");
         // populate the vertex array, with one quad per tile
         for (uint i = 0; i < width; ++i)
         {
@@ -232,7 +219,6 @@ class TileMap : Drawable, Transformable, Node
                 m_focusedTile = newFocus;
             }
 
-            debug writeln("New focused tile: " ~ m_focusedTile.toString());
             updateFocusLocation();
 
             return m_focusedTile;
@@ -425,7 +411,7 @@ private:
         void onAnimationRepeat()
         {
             //Do nothing, this shouldn't get called
-            writeln("This is getting called.... STOP IT!!!");
+            writeln("onAnimationRepeat is getting called.... STOP IT!!!");
         }
     }
 }

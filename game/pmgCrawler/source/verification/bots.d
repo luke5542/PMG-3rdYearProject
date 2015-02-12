@@ -11,7 +11,9 @@ import std.typecons;
 import dsfml.graphics;
 
 import ridgway.pmgcrawler.map;
+import ridgway.pmgcrawler.app;
 import ridgway.pmgcrawler.mapconfig;
+import ridgway.pmgcrawler.verification.verification;
 import ridgway.pmgcrawler.verification.path;
 import ridgway.pmgcrawler.verification.ray;
 
@@ -21,7 +23,10 @@ struct Exit {}
 //To be used exclusively as a message passed to this thread to retrieve the Move
 struct GetMove {}
 
-//To be used exclusively as a message passed to this thread to retrieve the Move
+//message to return verificaiotn results
+struct GetResults {}
+
+//message to return tile colors.
 struct GetTileColors {}
 struct TileColors { Color[][] colors; }
 
@@ -68,6 +73,7 @@ class Bot
         BotMapNode[][] m_nodes;
         Vector2u m_location;
         Vector2u m_sizeOfMap;
+        TestResults.BotResults m_results;
     }
 
     this(shared TileMap map)
@@ -119,6 +125,27 @@ class Bot
         }
 
         return colors;
+    }
+
+    TestResults.BotResults getResults()
+    {
+        checkNumSeen();
+        return m_results;
+    }
+
+    void checkNumSeen()
+    {
+        m_results.numTilesSeen = 0;
+        foreach(x; 0..m_nodes.length)
+        {
+            foreach(y; 0..m_nodes[x].length)
+            {
+                if(m_nodes[x][y].m_hasSeen)
+                {
+                    m_results.numTilesSeen++;
+                }
+            }
+        }
     }
 
 private:
@@ -264,14 +291,17 @@ class AStarBot : Bot
         if(m_generatePath)
         {
             m_path = getAStarMove(m_endLocation);
-            debug writeln("Generating path...");
+            debug if(VERBOSE) writeln("Generating path...");
             m_generatePath = false;
+            m_results.numGoals++;
         }
         //auto move = getAStarMove(m_endLocation);
         auto move = m_path.hasMove() ? m_path.pop() : Move.min;
         applyMove(move);
 
-        debug writeln("making move ", move);
+        debug if(VERBOSE) writeln("making move ", move);
+
+        m_results.numMoves++;
 
         return move;
     }
@@ -532,64 +562,19 @@ class BetterBlindBot : AStarBot
         //Selecting the current goal before doing other things...
         if(m_goalFound)
         {
-            debug writeln("Finding goal...");
+            debug if(VERBOSE) writeln("Finding goal...");
             //setCurrentGoal();
             setClosestNodeDijkstras();
             m_generatePath = true;
-            debug writeln("Goal set to: ", m_endLocation);
+            debug if(VERBOSE) writeln("Goal set to: ", m_endLocation);
         }
         auto move = super.makeNextMove();
 
         updateHasSeen();
 
-        writeln("Bot at location: ", m_location);
+        debug if(VERBOSE) writeln("Bot at location: ", m_location);
 
         return move;
-    }
-
-    void setCurrentGoal()
-    {
-        //Start by seeing if we can get to the exit, which takes priority
-        if(m_nodes[m_endGoal.x][m_endGoal.y].m_hasSeen)
-        {
-            m_endLocation = m_endGoal;
-            return;
-        }
-
-        // Grab the goal as the nearest tile that is:
-        // walkable, has been seen, and is an edge.
-        // If we don't know where the exit is, we go to a random choice
-        // of all of the closest unseen and walkable tiles...
-        BotMapNode nearestNodes;
-        float closestDistance = m_sizeOfMap.x*2;
-        float curDist;
-        foreach(x; 0 .. m_sizeOfMap.x)
-        {
-            foreach(y; 0 .. m_sizeOfMap.y)
-            {
-                if(m_nodes[x][y].m_isWalkable && !m_nodes[x][y].m_hasSeen && hasWalkableEdgeNeighbor(x, y))
-                {
-                    curDist = distanceTo(m_nodes[x][y].m_location, m_location);
-
-                    if(nearestNodes is null)
-                    {
-                        nearestNodes = m_nodes[x][y];
-                        closestDistance = curDist;
-                    }
-                    else if(curDist < closestDistance)
-                    {
-                        nearestNodes = m_nodes[x][y];
-                        closestDistance = curDist;
-                    }
-                }
-            }
-        }
-
-        if(nearestNodes !is null)
-        {
-            m_endLocation = nearestNodes.m_location;
-            m_goalFound = false;
-        }
     }
 
     bool hasWalkableEdgeNeighbor(int x, int y)
@@ -833,7 +818,7 @@ class BetterBlindBot : AStarBot
             m_endLocation = m_endGoal;
             return;
         }
-        
+
         initASMap();
         AStarMapNode[] unvisitedNodes;
 
@@ -929,7 +914,7 @@ Bot initBot(shared TileMap map, MapGenConfig config)
         case BotType.Moron:
             bot = new BlindBot(map);
             break;
-        case BotType.Human:
+        case BotType.Search:
             bot = new BetterBlindBot(map);
             break;
     }
@@ -960,6 +945,10 @@ void runBotThread(shared TileMap map, MapGenConfig config)
                         writeln("sending colors...");
                         immutable TileColors tc = cast(immutable(TileColors)) TileColors(bot.getTileColors());
                         ownerTid.send(tc);
+                    },
+                    (GetResults message) {
+                        writeln("sending results...");
+                        ownerTid.send(bot.getResults());
                     });
         }
         catch(OwnerTerminated exc)
@@ -976,6 +965,31 @@ void runBotThread(shared TileMap map, MapGenConfig config)
             done = true;
         }
     }
+}
+
+TestResults.BotResults testBot(TileMap map, MapGenConfig config)
+{
+    Bot bot = initBot(cast(shared(TileMap)) map, config);
+    map.focusedTile = map.getPlayerStart();
+
+    while(map.focusedTile != map.getPlayerEnd())
+    {
+        if(map.canMove)
+        {
+            if(map.focusedTile == map.getPlayerEnd())
+            {
+                return bot.getResults();
+            }
+            else
+            {
+                map.makeMove(bot.makeNextMove());
+            }
+        }
+
+        map.update(seconds(.25));
+    }
+
+    return bot.getResults();
 }
 
 class DistNode

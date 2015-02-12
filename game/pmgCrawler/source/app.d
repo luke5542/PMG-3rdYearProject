@@ -177,6 +177,16 @@ class LifeGUI
 
 }
 
+
+bool isHelp = false;
+string perlinOutput, bspOutput, mapFile;
+uint size, thresh, smooth;
+bool use3D = false, VERBOSE = false, demo = false;
+uint minRoomWidth, minRoomHeight;
+float minAreaRatio;
+string rank, config;
+int numBatchGen;
+
 void main(string[] args)
 {
     version(unittest)
@@ -186,15 +196,6 @@ void main(string[] args)
     }
     else
     {
-        bool isHelp = false;
-        string perlinOutput, bspOutput, mapFile;
-        uint size, thresh, smooth;
-        bool use3D = false, verbose = false, demo = false;
-        uint minRoomWidth, minRoomHeight;
-        float minAreaRatio;
-        string rank, config;
-        int batchGen;
-
         try
         {
             getopt( args,
@@ -209,10 +210,10 @@ void main(string[] args)
                     "min-room-height|mrh", &minRoomHeight,
                     "min-room-width|mrw", &minRoomWidth,
                     "min-area-ratio|mar", &minAreaRatio,
-                    "batch-gen", &batchGen,
+                    "batch-gen", &numBatchGen,
                     "rank", &rank,
                     "config", &config,
-                    "verbose", &verbose,
+                    "verbose", &VERBOSE,
                     "demo", &demo);
 
             MapGenConfig configObj;
@@ -264,63 +265,9 @@ void main(string[] args)
                     generateBSP(bspOutput, size, minRoomWidth, minRoomHeight, minAreaRatio, 1);
                 }
             }
-            else if(batchGen > 0)
+            else if(numBatchGen > 0)
             {
-                writeln("Beginning batch generation of ", batchGen, " maps.");
-
-                //Get the date format and create the necessary directories...
-                string date = std.datetime.Clock.currTime.toISOString;
-                debug writeln("Using date: ", date);
-                string dateDir = "./" ~ date[0 .. $-find(date, ".").length] ~ "/";
-
-                //Copy the config into the directory...
-                if(!exists(dateDir))
-                {
-                    mkdirRecurse(dateDir);
-                }
-                copy(config, dateDir ~ baseName(config));
-
-                //Create the results file so we can store our verification data
-                auto resultsFile = File(dateDir ~ "results", "w");
-                resultsFile.writeln("VERIFICATION RESULTS");
-                resultsFile.writeln("--------------------\n");
-
-                Generators genMethod;
-                TestResults results;
-                string outputFile;
-                foreach(i; 0..batchGen)
-                {
-                    genMethod = cast(Generators) uniform!"[]"(Generators.min, Generators.max);
-                    Image image;
-                    string title;
-                    final switch(genMethod)
-                    {
-                        case Generators.PERLIN:
-                            debug writeln("Generating Perlin Map");
-                            image = generatePerlin(dateDir ~ to!string(i) ~"-perlin" ~ ".png", configObj);
-
-                            title = to!string(i) ~ " - Perlin";
-                            break;
-                        case Generators.BSP:
-                            debug writeln("Generating BSP Map");
-                            image = generateBSP(dateDir ~ to!string(i) ~ "-bsp" ~ ".png", configObj);
-
-                            title = to!string(i) ~ " - BSP";
-                            break;
-                    }
-
-                    results = runVerification(configObj, image);
-
-                    //Print various output.
-                    resultsFile.writeln(title);
-                    printResults(results, resultsFile);
-                    if(verbose)
-                    {
-                        writeln(title);
-                        printResults(results, stdout);
-                    }
-                }
-                resultsFile.close();
+                batchGen(configObj);
             }
             else if(rank)
             {
@@ -355,6 +302,65 @@ void main(string[] args)
         }
 
     }
+}
+
+void batchGen(MapGenConfig configObj)
+{
+    writeln("Beginning batch generation of ", numBatchGen, " maps.");
+
+    //Get the date format and create the necessary directories...
+    string date = std.datetime.Clock.currTime.toISOString;
+    debug writeln("Using date: ", date);
+    string dateDir = "./" ~ date[0 .. $-find(date, ".").length] ~ "/";
+
+    //Copy the config into the directory...
+    if(!exists(dateDir))
+    {
+        mkdirRecurse(dateDir);
+    }
+    copy(config, dateDir ~ baseName(config));
+
+    //Create the results file so we can store our verification data
+    auto resultsFile = File(dateDir ~ "results", "w");
+    resultsFile.writeln("VERIFICATION RESULTS");
+    resultsFile.writeln("--------------------\n");
+
+    Generators genMethod;
+    TestResults results;
+    string outputFile;
+    foreach(i; 0..numBatchGen)
+    {
+        genMethod = cast(Generators) uniform!"[]"(Generators.min, Generators.max);
+        Image image;
+        string title;
+        final switch(genMethod)
+        {
+            case Generators.PERLIN:
+                debug writeln("Generating Perlin Map");
+                image = generatePerlin(dateDir ~ to!string(i) ~"-perlin" ~ ".png", configObj);
+
+                title = to!string(i) ~ " - Perlin";
+                break;
+            case Generators.BSP:
+                debug writeln("Generating BSP Map");
+                image = generateBSP(dateDir ~ to!string(i) ~ "-bsp" ~ ".png", configObj);
+
+                title = to!string(i) ~ " - BSP";
+                break;
+        }
+
+        results = runVerification(configObj, image);
+        results.name = title;
+
+        //Print various output.
+        printResults(results, resultsFile);
+        if(VERBOSE)
+        {
+            writeln(title);
+            printResults(results, stdout);
+        }
+    }
+    resultsFile.close();
 }
 
 immutable string helpMessage =
@@ -422,6 +428,7 @@ Usage
     "verification":
     {
       "dijkstras":true,
-      "randomBot":false
+      "useBots":true,
+      "botType":"Search"
     }
   }`;

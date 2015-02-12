@@ -74,6 +74,10 @@ MapGenConfig loadConfig(in string file)
             {
                 config.vConfig.dijkstras = verif["dijkstras"].type == JSON_TYPE.TRUE;
             }
+            if("useBots" in verif && verif["useBots"].type == JSON_TYPE.TRUE || verif["useBots"].type == JSON_TYPE.FALSE)
+            {
+                config.vConfig.useBots = verif["useBots"].type == JSON_TYPE.TRUE;
+            }
             if("botType" in verif && verif["botType"].type == JSON_TYPE.STRING)
             {
                 config.vConfig.bot = to!BotType(verif["botType"].str);
@@ -84,7 +88,7 @@ MapGenConfig loadConfig(in string file)
     return config;
 }
 
-enum BotType { Random, SpeedRunner, Moron, Human }
+enum BotType { Random, SpeedRunner, Moron, Search }
 
 struct MapGenConfig
 {
@@ -111,7 +115,8 @@ struct MapGenConfig
 
     private struct VerificationConfig
     {
-        BotType bot = BotType.Random;
+        BotType bot = BotType.Search;
+        bool useBots = false;
         bool dijkstras = true;
     }
 

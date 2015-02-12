@@ -75,7 +75,6 @@ class TileMapGUI
         m_window = new RenderWindow(/*VideoMode.getDesktopMode()*/VideoMode(800,600), "PMG Crawler", Window.Style.DefaultStyle, settings);
         m_window.setFramerateLimit(60);
 
-        debug writeln("Loading tile map");
         m_tileMap = new TileMap();
         if(!m_tileMap.load(TILE_MAP_LOC, Vector2u(32, 32), level, 20, 25, Vector2u(0,0), Vector2u(1,0)))
         {
@@ -134,22 +133,18 @@ class TileMapGUI
     {
         if(Keyboard.isKeyPressed(Keyboard.Key.Down))
         {
-            debug writeln("Down arrow key pressed.");
             m_tileMap.makeMove(Move.DOWN);
         }
         else if(Keyboard.isKeyPressed(Keyboard.Key.Up))
         {
-            debug writeln("Up arrow key pressed.");
             m_tileMap.makeMove(Move.UP);
         }
         else if(Keyboard.isKeyPressed(Keyboard.Key.Left))
         {
-            debug writeln("Left arror key pressed.");
             m_tileMap.makeMove(Move.LEFT);
         }
         else if(Keyboard.isKeyPressed(Keyboard.Key.Right))
         {
-            debug writeln("Right arrow key pressed.");
             m_tileMap.makeMove(Move.RIGHT);
         }
 
@@ -179,7 +174,6 @@ class GeneratedMapGUI : TileMapGUI
         m_window = new RenderWindow(VideoMode(800,600), "PMG Crawler", Window.Style.DefaultStyle, settings);
         m_window.setFramerateLimit(60);
 
-        debug writeln("Loading tile map");
         m_tileMap = new TileMap();
         if(!m_tileMap.loadFromImage(TILE_MAP_LOC, mapFile, Vector2u(32, 32)))
         {
@@ -188,7 +182,6 @@ class GeneratedMapGUI : TileMapGUI
         }
 
         m_tileMap.focusedLocation = Vector2i(400, 300);
-        debug writeln("Player Start: ", m_tileMap.getPlayerStart());
         m_tileMap.focusedTile = m_tileMap.getPlayerStart();
 
         m_player = new Player();
@@ -229,7 +222,6 @@ class DemoMapGUI : TileMapGUI
 
     void generateMap()
     {
-        debug writeln("Generating tile map");
         auto genMap = generateMapImage();
         while(!genMap)
         {
@@ -284,8 +276,7 @@ class DemoMapGUI : TileMapGUI
             if(m_tileMap.focusedTile == m_tileMap.getPlayerEnd)
             {
                 //We are done, and can exit...
-                writeln("Successfully reached the end of the map! Exitting...");
-                //exit(0);
+                writeln("Bot Results: ", bot.getResults());
                 beginNewMap();
             }
             else

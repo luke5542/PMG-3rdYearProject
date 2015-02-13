@@ -1,0 +1,6 @@
+Format for each line of test data:
+
+<rank> qid:<dataType> <featureNumber>:<value> ...
+
+ex:
+3 qid:1 1:1 2:1 3:0 4:0.2 5:0

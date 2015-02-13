@@ -273,7 +273,7 @@ void main(string[] args)
             {
                 writeln("Ranking map: ", rank);
                 auto results = runVerification(configObj, rank);
-                printResults(results, stdout);
+                writeln(results);
             }
             else if(demo)
             {
@@ -320,14 +320,8 @@ void batchGen(MapGenConfig configObj)
     }
     copy(config, dateDir ~ baseName(config));
 
-    //Create the results file so we can store our verification data
-    auto resultsFile = File(dateDir ~ "results", "w");
-    resultsFile.writeln("VERIFICATION RESULTS");
-    resultsFile.writeln("--------------------\n");
-
     Generators genMethod;
-    TestResults results;
-    string outputFile;
+    TestResults[] results;
     foreach(i; 0..numBatchGen)
     {
         genMethod = cast(Generators) uniform!"[]"(Generators.min, Generators.max);
@@ -349,17 +343,24 @@ void batchGen(MapGenConfig configObj)
                 break;
         }
 
-        results = runVerification(configObj, image);
-        results.name = title;
-
-        //Print various output.
-        printResults(results, resultsFile);
-        if(VERBOSE)
-        {
-            writeln(title);
-            printResults(results, stdout);
-        }
+        auto resultItem = runVerification(configObj, image);
+        resultItem.name = title;
+        results ~= resultItem;
     }
+
+
+    //Create the results file so we can store our verification data
+    auto resultsFile = File(dateDir ~ "results", "w");
+    resultsFile.writeln("VERIFICATION RESULTS");
+    resultsFile.writeln("--------------------\n");
+
+    //Print various output.
+    printResults(results, resultsFile);
+    if(VERBOSE)
+    {
+        printResults(results, stdout);
+    }
+
     resultsFile.close();
 }
 

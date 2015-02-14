@@ -210,6 +210,7 @@ class DemoMapGUI : TileMapGUI
         m_player.position = Vector2f(400, 300);
 
         m_config = config;
+        m_config.vConfig.useBots = false;
 
         beginNewMap();
     }
@@ -275,9 +276,7 @@ class DemoMapGUI : TileMapGUI
         {
             if(m_tileMap.focusedTile == m_tileMap.getPlayerEnd)
             {
-                //We are done, and can exit...
-                writeln("Bot Results: ", bot.getResults());
-                beginNewMap();
+                botReachedMapEnd();
             }
             else
             {
@@ -298,4 +297,85 @@ class DemoMapGUI : TileMapGUI
         m_tileMap.update(time);
     }
 
+    void botReachedMapEnd()
+    {
+        //We are done, and can exit...
+        writeln("Bot Results: ", bot.getResults());
+        beginNewMap();
+    }
+
+}
+
+class FullDemoGUI : DemoMapGUI
+{
+    private
+    {
+        alias highlightColor = Color(0, 0, 255, 255);
+        alias normalColor = Color(255, 255, 255, 255);
+
+        Text m_randBtn;
+        Text m_perlinBtn;
+        Text m_bspBtn;
+        Text m_demoBtn;
+
+        Font m_font;
+
+        enum State { PLAYING_MAP, MAIN_MENU }
+        State m_state;
+    }
+
+    this(MapGenConfig config)
+    {
+        super(config);
+
+        m_font = new Font();
+        font.loadFromFile(TEXT_FONT_LOC);
+
+        m_randBtn = new Text("Random", m_font);
+    }
+
+    override void beginNewMap()
+    {
+        //Make this do nothing, now. The functionality will get
+        //replaced in another location/user flow.
+    }
+
+    override void update(ref RenderWindow window, Time time)
+    {
+        final switch(m_state)
+        {
+            case PLAYING_MAP:
+                super.update(window, time);
+                break;
+            case MAIN_MENU:
+                auto mouseLoc = Mouse.getPosition(mouse);
+                if(m_randBtn.getGlobalBounds().contains(mouseLoc))
+                {
+                    m_randBtn.setColor(highlightColor);
+                }
+                else
+                {
+                    m_randBtn.setColor(normalColor);
+                }
+                break;
+        }
+    }
+
+    void draw(ref RenderWindow m_window)
+    {
+        m_window.clear();
+
+        final switch(m_state)
+        {
+            case PLAYING_MAP:
+                m_tileMap.draw(m_window);
+                m_window.draw(m_player);
+                break;
+            case MAIN_MENU:
+                m_window.draw(m_randBtn);
+                break;
+        }
+
+        m_window.display();
+    }
 }

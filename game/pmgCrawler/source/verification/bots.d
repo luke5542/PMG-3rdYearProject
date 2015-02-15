@@ -658,12 +658,12 @@ class BetterBlindBot : AStarBot
                     Ray ray = Ray(Vector2f(x, y),
                                   Vector2f((cast(float) m_location.x) - (cast(float) x),
                                            (cast(float) m_location.y) - (cast(float) y)));
-                    ulong rayX, rayY;
+                    uint rayX, rayY;
                     while(!locRect.contains(ray.m_start) && !wallIntersects)
                     {
                         auto vec = ray.nextLocation(.5);
-                        rayX = cast(ulong) round(vec.x);
-                        rayY = cast(ulong) round(vec.y);
+                        rayX = cast(uint) round(vec.x);
+                        rayY = cast(uint) round(vec.y);
                         //writeln("Checking point: ", Vector2!ulong(rayX, rayY), ", walkable - ", m_nodes[rayX][rayY].m_isWalkable);
                         if(!(rayX == x && rayY == y) && !m_nodes[rayX][rayY].m_isWalkable)
                         {

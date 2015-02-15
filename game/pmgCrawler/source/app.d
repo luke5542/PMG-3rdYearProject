@@ -277,19 +277,27 @@ void main(string[] args)
             }
             else if(demo)
             {
+                debug writeln("Staring Demo GUI...");
                 auto gui = new DemoMapGUI(configObj);
                 gui.run();
             }
             else
             {
-                debug writeln("Staring GUI...");
-                if(mapFile)
+                if(config)
                 {
+                    debug writeln("Staring Full Demo GUI...");
+                    auto gui = new FullDemoGUI(configObj);
+                    gui.run();
+                }
+                else if(mapFile)
+                {
+                    debug writeln("Staring Generated Map GUI...");
                     auto gui = new GeneratedMapGUI(mapFile);
                     gui.run();
                 }
                 else
                 {
+                    debug writeln("Staring Basic GUI...");
                     auto gui = new TileMapGUI();
                     gui.run();
                 }

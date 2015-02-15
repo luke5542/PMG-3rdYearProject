@@ -4,8 +4,7 @@ import std.stdio;
 import std.c.stdlib;
 import std.concurrency;
 import std.random;
-
-import core.time;
+import std.conv;
 
 import dsfml.system;
 import dsfml.graphics;
@@ -117,6 +116,10 @@ class TileMapGUI
                         m_paused = !m_paused;
                     }
                 }
+                else if(event.type == Event.EventType.MouseButtonReleased)
+                {
+                    handleMouse(event.mouseButton);
+                }
             }
 
             Time time = clock.getElapsedTime();
@@ -129,7 +132,20 @@ class TileMapGUI
         }
     }
 
-    void update(ref RenderWindow m_window, Time time)
+    void handleMouse(Event.MouseButtonEvent mouseButton)
+    {
+        //Do nothing for now...
+    }
+
+    void update(ref RenderWindow window, Time time)
+    {
+        checkKeyboard();
+
+        m_player.update(time);
+        m_tileMap.update(time);
+    }
+
+    void checkKeyboard()
     {
         if(Keyboard.isKeyPressed(Keyboard.Key.Down))
         {
@@ -147,19 +163,16 @@ class TileMapGUI
         {
             m_tileMap.makeMove(Move.RIGHT);
         }
-
-        m_player.update(time);
-        m_tileMap.update(time);
     }
 
-    void draw(ref RenderWindow m_window)
+    void draw(ref RenderWindow window)
     {
-        m_window.clear();
+        window.clear();
 
-        m_tileMap.draw(m_window);
-        m_window.draw(m_player);
+        m_tileMap.draw(window);
+        window.draw(m_player);
 
-        m_window.display();
+        window.display();
     }
 
 }
@@ -169,10 +182,10 @@ class GeneratedMapGUI : TileMapGUI
 
     this(string mapFile)
     {
-        auto settings = ContextSettings();
-        settings.antialiasingLevel = 8;
-        m_window = new RenderWindow(VideoMode(800,600), "PMG Crawler", Window.Style.DefaultStyle, settings);
-        m_window.setFramerateLimit(60);
+        //auto settings = ContextSettings();
+        //settings.antialiasingLevel = 8;
+        //m_window = new RenderWindow(VideoMode(800,600), "PMG Crawler", Window.Style.DefaultStyle, settings);
+        //m_window.setFramerateLimit(60);
 
         m_tileMap = new TileMap();
         if(!m_tileMap.loadFromImage(TILE_MAP_LOC, mapFile, Vector2u(32, 32)))
@@ -183,9 +196,6 @@ class GeneratedMapGUI : TileMapGUI
 
         m_tileMap.focusedLocation = Vector2i(400, 300);
         m_tileMap.focusedTile = m_tileMap.getPlayerStart();
-
-        m_player = new Player();
-        m_player.position = Vector2f(400, 300);
     }
 
 }
@@ -197,17 +207,17 @@ class DemoMapGUI : TileMapGUI
     {
         MapGenConfig m_config;
         Bot bot;
+        TestResults m_results;
+    }
+
+    this()
+    {
+        super();
     }
 
     this(MapGenConfig config)
     {
-        auto settings = ContextSettings();
-        settings.antialiasingLevel = 8;
-        m_window = new RenderWindow(VideoMode(800,600), "PMG Crawler", Window.Style.DefaultStyle, settings);
-        m_window.setFramerateLimit(60);
-
-        m_player = new Player();
-        m_player.position = Vector2f(400, 300);
+        super();
 
         m_config = config;
         m_config.vConfig.useBots = false;
@@ -217,20 +227,27 @@ class DemoMapGUI : TileMapGUI
 
     void beginNewMap()
     {
-        generateMap();
+        auto genMethod = cast(Generators) uniform!"[]"(Generators.min, Generators.max);
+        generateMap(genMethod);
+
         bot = initBot(cast(shared(TileMap)) m_tileMap, m_config);
     }
 
-    void generateMap()
+    void generateMap(Generators genMethod)
     {
-        auto genMap = generateMapImage();
+        auto genMap = generateMapImage(genMethod);
         while(!genMap)
         {
-            genMap = generateMapImage();
+            genMap = generateMapImage(genMethod);
         }
 
+        runBotOnMap(genMap);
+    }
+
+    void runBotOnMap(Image map)
+    {
         m_tileMap = new TileMap();
-        if(!m_tileMap.loadFromImage(TILE_MAP_LOC, genMap, Vector2u(32, 32)))
+        if(!m_tileMap.loadFromImage(TILE_MAP_LOC, map, Vector2u(32, 32)))
         {
             writeln("Couldn't load tile map image...");
             exit(1);
@@ -242,9 +259,8 @@ class DemoMapGUI : TileMapGUI
         m_tileMap.focusedTile = m_tileMap.getPlayerStart();
     }
 
-    Image generateMapImage()
+    Image generateMapImage(Generators genMethod)
     {
-        auto genMethod = cast(Generators) uniform!"[]"(Generators.min, Generators.max);
         Image image;
         final switch(genMethod)
         {
@@ -258,8 +274,8 @@ class DemoMapGUI : TileMapGUI
                 break;
         }
 
-        auto results = runVerification(m_config, image);
-        if(results.ranDijkstras && results.exitTileDistance > 0)
+        m_results = runVerification(m_config, image);
+        if(m_results.ranDijkstras && m_results.exitTileDistance > 0)
         {
             return image;
         }
@@ -270,7 +286,7 @@ class DemoMapGUI : TileMapGUI
         }
     }
 
-    override void update(ref RenderWindow m_window, Time time)
+    override void update(ref RenderWindow window, Time time)
     {
         if(m_tileMap.canMove)
         {
@@ -310,28 +326,100 @@ class FullDemoGUI : DemoMapGUI
 {
     private
     {
-        alias highlightColor = Color(0, 0, 255, 255);
-        alias normalColor = Color(255, 255, 255, 255);
+        static immutable highlightColor = Color(0, 0, 255, 255);
+        static immutable normalColor = Color(255, 255, 255, 255);
 
         Text m_randBtn;
         Text m_perlinBtn;
         Text m_bspBtn;
         Text m_demoBtn;
 
+        RectangleShape m_background;
+        Shader m_shader;
+        Time m_shaderTime;
+
         Font m_font;
 
-        enum State { PLAYING_MAP, MAIN_MENU }
-        State m_state;
+        enum State { PLAYING_MAP, MAIN_MENU, RUNNING_DEMO, RUNNING_SINGLE_DEMO, SHOWING_MAP }
+        State m_state = State.MAIN_MENU;
+
+        bool m_useBots;
+
+        Image m_currentMap;
+        Sprite m_mapSprite;
+        Text m_playBtn;
+        Text m_botBtn;
+        Text m_mapStats;
     }
 
     this(MapGenConfig config)
     {
+        m_useBots = config.vConfig.useBots;
         super(config);
 
-        m_font = new Font();
-        font.loadFromFile(TEXT_FONT_LOC);
+        m_player = new Player();
+        m_player.position = Vector2f(400, 300);
 
-        m_randBtn = new Text("Random", m_font);
+        m_background = new RectangleShape(Vector2f(800, 600));
+        m_background.position = Vector2f(0, 0);
+        m_background.origin = Vector2f(0, 0);
+
+        if(Shader.isAvailable())
+        {
+            m_shader = new Shader();
+            if (!m_shader.loadFromFile(SHADER_LOC, Shader.Type.Fragment))
+            {
+                writeln("Shader failed to load.");
+            }
+            else
+            {
+                m_shader.setParameter("resolution", Vector2f(800, 600));
+                m_shaderTime = seconds(0);
+                m_shader.setParameter("time", m_shaderTime.asSeconds());
+            }
+        }
+
+        m_font = new Font();
+        if(!m_font.loadFromFile(TEXT_FONT_LOC))
+        {
+            writeln("Failed to load font file! Exiting...");
+            exit(1);
+        }
+
+        m_randBtn = new Text("Random Map", m_font, 60);
+        m_randBtn.position = Vector2f(400, 100);
+        m_randBtn.origin = Vector2f(m_randBtn.getLocalBounds().width/2,
+                                    m_randBtn.getLocalBounds().height/2);
+
+        m_perlinBtn = new Text("Perlin Map", m_font, 60);
+        m_perlinBtn.position = Vector2f(400, 200);
+        m_perlinBtn.origin = Vector2f(m_randBtn.getLocalBounds().width/2,
+                                    m_randBtn.getLocalBounds().height/2);
+
+        m_bspBtn = new Text("BSP Map", m_font, 60);
+        m_bspBtn.position = Vector2f(400, 300);
+        m_bspBtn.origin = Vector2f(m_randBtn.getLocalBounds().width/2,
+                                    m_randBtn.getLocalBounds().height/2);
+
+        m_demoBtn = new Text("Demo Mode", m_font, 60);
+        m_demoBtn.position = Vector2f(400, 400);
+        m_demoBtn.origin = Vector2f(m_randBtn.getLocalBounds().width/2,
+                                    m_randBtn.getLocalBounds().height/2);
+    }
+
+    void runPlayableMap()
+    {
+        m_tileMap = new TileMap();
+        if(!m_tileMap.loadFromImage(TILE_MAP_LOC, m_currentMap, Vector2u(32, 32)))
+        {
+            writeln("Couldn't load tile map image...");
+            exit(1);
+        }
+
+        m_tileMap.focusedLocation = Vector2i(400, 300);
+        m_tileMap.focusedTile = m_tileMap.getPlayerStart();
+
+        m_state = State.PLAYING_MAP;
     }
 
     override void beginNewMap()
@@ -340,15 +428,58 @@ class FullDemoGUI : DemoMapGUI
         //replaced in another location/user flow.
     }
 
+    override void botReachedMapEnd()
+    {
+        if(m_state == State.RUNNING_DEMO)
+        {
+            super.botReachedMapEnd();
+        }
+        else if(m_state == State.RUNNING_SINGLE_DEMO)
+        {
+            writeln("Bot Results: ", bot.getResults());
+            m_state = State.MAIN_MENU;
+        }
+    }
+
     override void update(ref RenderWindow window, Time time)
     {
+        auto mouseLoc = Mouse.getPosition(window);
         final switch(m_state)
         {
-            case PLAYING_MAP:
+            case State.PLAYING_MAP:
+                checkKeyboard();
+                m_player.update(time);
+                m_tileMap.update(time);
+                break;
+
+            case State.RUNNING_SINGLE_DEMO:
+            case State.RUNNING_DEMO:
                 super.update(window, time);
                 break;
-            case MAIN_MENU:
-                auto mouseLoc = Mouse.getPosition(mouse);
+
+            case State.SHOWING_MAP:
+                if(m_playBtn.getGlobalBounds().contains(mouseLoc))
+                {
+                    m_playBtn.setColor(highlightColor);
+                }
+                else
+                {
+                    m_playBtn.setColor(normalColor);
+                }
+                if(m_botBtn.getGlobalBounds().contains(mouseLoc))
+                {
+                    m_botBtn.setColor(highlightColor);
+                }
+                else
+                {
+                    m_botBtn.setColor(normalColor);
+                }
+
+                m_shaderTime += time;
+                m_shader.setParameter("time", m_shaderTime.asSeconds());
+                break;
+
+            case State.MAIN_MENU:
                 if(m_randBtn.getGlobalBounds().contains(mouseLoc))
                 {
                     m_randBtn.setColor(highlightColor);
@@ -357,25 +488,162 @@ class FullDemoGUI : DemoMapGUI
                 {
                     m_randBtn.setColor(normalColor);
                 }
+                if(m_perlinBtn.getGlobalBounds().contains(mouseLoc))
+                {
+                    m_perlinBtn.setColor(highlightColor);
+                }
+                else
+                {
+                    m_perlinBtn.setColor(normalColor);
+                }
+                if(m_bspBtn.getGlobalBounds().contains(mouseLoc))
+                {
+                    m_bspBtn.setColor(highlightColor);
+                }
+                else
+                {
+                    m_bspBtn.setColor(normalColor);
+                }
+                if(m_demoBtn.getGlobalBounds().contains(mouseLoc))
+                {
+                    m_demoBtn.setColor(highlightColor);
+                }
+                else
+                {
+                    m_demoBtn.setColor(normalColor);
+                }
+
+                m_shaderTime += time;
+                m_shader.setParameter("time", m_shaderTime.asSeconds());
                 break;
         }
     }
 
-    void draw(ref RenderWindow m_window)
+    override void handleMouse(Event.MouseButtonEvent mouseButton)
     {
-        m_window.clear();
+        if(mouseButton.button == Mouse.Button.Left)
+        {
+            auto mouseLoc = Mouse.getPosition(m_window);
+            if(m_state == State.MAIN_MENU)
+            {
+                if(m_randBtn.getGlobalBounds().contains(mouseLoc))
+                {
+                    showRandomMap();
+                }
+                else if(m_perlinBtn.getGlobalBounds().contains(mouseLoc))
+                {
+                    showMap(Generators.PERLIN);
+                }
+                else if(m_bspBtn.getGlobalBounds().contains(mouseLoc))
+                {
+                    showMap(Generators.BSP);
+                }
+                else if(m_demoBtn.getGlobalBounds().contains(mouseLoc))
+                {
+                    super.beginNewMap();
+                    m_state = State.RUNNING_DEMO;
+                }
+            }
+            else if(m_state == State.SHOWING_MAP)
+            {
+                if(m_playBtn.getGlobalBounds().contains(mouseLoc))
+                {
+                    runPlayableMap();
+                }
+                else if(m_botBtn.getGlobalBounds().contains(mouseLoc))
+                {
+                    runBotOnMap(m_currentMap);
+                    bot = initBot(cast(shared(TileMap)) m_tileMap, m_config);
+                    m_state = State.RUNNING_SINGLE_DEMO;
+                }
+            }
+        }
+    }
+
+    void showRandomMap()
+    {
+        auto genMethod = cast(Generators) uniform!"[]"(Generators.min, Generators.max);
+        showMap(genMethod);
+    }
+
+    void showMap(Generators genMethod)
+    {
+        auto genMap = generateMapImage(genMethod);
+        while(!genMap)
+        {
+            genMap = generateMapImage(genMethod);
+        }
+
+        Texture tex = new Texture();
+        if(!tex.loadFromImage(genMap))
+        {
+            writeln("Failed to make texture from generated image...");
+        }
+        m_currentMap = genMap;
+        m_mapSprite = new Sprite(tex);
+        auto width = m_currentMap.getSize().x;
+        m_mapSprite.origin = Vector2f(width/2, width/2);
+        m_mapSprite.scale = Vector2f(400/width, 400/width);
+        m_mapSprite.position = Vector2f(300, 300);
+
+
+        m_playBtn = new Text("Play", m_font, 60);
+        m_playBtn.position = Vector2f(250, 550);
+        m_playBtn.origin = Vector2f(m_playBtn.getLocalBounds().width/2,
+                                    m_playBtn.getLocalBounds().height/2);
+
+        m_botBtn = new Text("Bot", m_font, 60);
+        m_botBtn.position = Vector2f(550, 550);
+        m_botBtn.origin = Vector2f(m_botBtn.getLocalBounds().width/2,
+                                    m_botBtn.getLocalBounds().height/2);
+
+        m_mapStats = new Text(to!(dstring)(m_results.toString()), m_font, 20);
+        m_mapStats.position = Vector2f(500, 300);
+        m_mapStats.origin = Vector2f(0, m_mapStats.getLocalBounds().height/2);
+
+        m_state = State.SHOWING_MAP;
+    }
+
+    override void draw(ref RenderWindow window)
+    {
+        window.clear();
 
         final switch(m_state)
         {
-            case PLAYING_MAP:
+            case State.PLAYING_MAP:
+            case State.RUNNING_SINGLE_DEMO:
+            case State.RUNNING_DEMO:
                 m_tileMap.draw(m_window);
-                m_window.draw(m_player);
+                window.draw(m_player);
                 break;
-            case MAIN_MENU:
-                m_window.draw(m_randBtn);
+            case State.SHOWING_MAP:
+                if(Shader.isAvailable())
+                {
+                    RenderStates states = RenderStates.Default;
+                    states.shader = m_shader;
+                    window.draw(m_background, states);
+                }
+
+                window.draw(m_mapSprite);
+                window.draw(m_playBtn);
+                window.draw(m_botBtn);
+                window.draw(m_mapStats);
+                break;
+            case State.MAIN_MENU:
+                if(Shader.isAvailable())
+                {
+                    RenderStates states = RenderStates.Default;
+                    states.shader = m_shader;
+                    window.draw(m_background, states);
+                }
+
+                window.draw(m_randBtn);
+                window.draw(m_bspBtn);
+                window.draw(m_perlinBtn);
+                window.draw(m_demoBtn);
                 break;
         }
 
-        m_window.display();
+        window.display();
     }
 }

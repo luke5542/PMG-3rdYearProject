@@ -261,7 +261,7 @@ class BSPGenerator : Generator
                 {
                     foreach(y; sideOne.top .. sideOne.top + sideOne.height)
                     {
-                        if(image.getPixel(x, y) == Color.Blue
+                        if((image.getPixel(x, y) == Color.Blue || image.getPixel(x, y) == Color.White)
                             && (!(x in edgesTop) || edgesTop[x].y < y))
                         {
                             edgesTop[x] = Vector2u(x, y);
@@ -272,7 +272,7 @@ class BSPGenerator : Generator
                 {
                     foreach(y; sideTwo.top .. sideTwo.top + sideTwo.height)
                     {
-                        if(image.getPixel(x, y) == Color.Blue
+                        if((image.getPixel(x, y) == Color.Blue || image.getPixel(x, y) == Color.White)
                             && (!(x in edgesBottom) || edgesBottom[x].y > y))
                         {
                             edgesBottom[x] = Vector2u(x, y);
@@ -320,7 +320,7 @@ class BSPGenerator : Generator
                 {
                     foreach(y; sideOne.top .. sideOne.top + sideOne.height)
                     {
-                        if(image.getPixel(x, y) == Color.Blue
+                        if((image.getPixel(x, y) == Color.Blue || image.getPixel(x, y) == Color.White)
                             && (!(y in edgesLeft) || edgesLeft[y].x < x))
                         {
                             edgesLeft[y] = Vector2u(x, y);
@@ -331,7 +331,7 @@ class BSPGenerator : Generator
                 {
                     foreach(y; sideTwo.top .. sideTwo.top + sideTwo.height)
                     {
-                        if(image.getPixel(x, y) == Color.Blue
+                        if((image.getPixel(x, y) == Color.Blue || image.getPixel(x, y) == Color.White)
                             && (!(y in edgesRight) || edgesRight[y].x > x))
                         {
                             edgesRight[y] = Vector2u(x, y);

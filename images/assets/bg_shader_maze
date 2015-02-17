@@ -1,0 +1,84 @@
+#ifdef GL_ES
+precision highp float;
+#endif
+
+uniform float time;
+uniform vec2 mouse;
+uniform vec2 resolution;
+
+//"Maze Generator" based off David Winter's Maze demo for Chip-8.
+
+//The maze is made up of 2 4x4 tiles which are choosen randomly for each 4x4 block of pixels.
+
+#define RESOLUTION 256, 192
+
+#define FULL_RESOLUTION
+
+//Tile 0
+/*
+  █      0010
+ █       0100
+█     -> 1000  -> 0010010010000001 -> 9345
+   █     0001
+*/
+
+//Tile 1
+/*
+█        1000
+ █       0100
+  █   -> 0010  -> 1000010000100001 -> 33825
+   █     0001
+*/
+
+float tile_0 = 9345.0;
+float tile_1 = 33825.0;
+
+float rand(vec2 co)
+{
+    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
+
+//returns 0/1 based on the state of the given bit in the given number
+float getBit(float num,float bit)
+{
+    num = floor(num);
+    bit = floor(bit);
+
+    return float(mod(floor(num/pow(2.,bit)),2.) == 1.0);
+}
+
+float Sprite4x4(float sprite,vec2 p)
+{
+    float bounds = float(all(lessThan(p,vec2(4,4))) && all(greaterThanEqual(p,vec2(0,0))));
+
+    return getBit(sprite,(3.0 - p.x) + 4.0 * p.y) * bounds;
+}
+
+void main( void )
+{
+    vec2 uv = ( gl_FragCoord.xy / resolution.xy ) * vec2(RESOLUTION);
+    uv = floor(uv);
+
+    #ifdef FULL_RESOLUTION
+    uv = gl_FragCoord.xy;
+    uv = floor(uv);
+    #endif
+
+    float color = 0.0;
+
+    float randTile = floor(rand(floor(uv/4.0+time))+0.5);
+
+    vec2 tileUV = mod(uv,4.0);
+
+    if(randTile == 0.0)
+    {
+        color = Sprite4x4(tile_0,tileUV);
+    }
+    else
+    {
+        color = Sprite4x4(tile_1,tileUV);
+    }
+
+    gl_FragColor = vec4( vec3( color ), 1.0 );
+
+}

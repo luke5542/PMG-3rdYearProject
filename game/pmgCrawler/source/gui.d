@@ -326,7 +326,7 @@ class FullDemoGUI : DemoMapGUI
 {
     private
     {
-        static immutable highlightColor = Color(0, 0, 255, 255);
+        static immutable highlightColor = Color(255, 180, 0, 255);
         static immutable normalColor = Color(255, 255, 255, 255);
 
         Text m_randBtn;
@@ -386,22 +386,22 @@ class FullDemoGUI : DemoMapGUI
             exit(1);
         }
 
-        m_randBtn = new Text("Random Map", m_font, 60);
+        m_randBtn = new Text("Random Map", m_font, 80);
         m_randBtn.position = Vector2f(400, 100);
         m_randBtn.origin = Vector2f(m_randBtn.getLocalBounds().width/2,
                                     m_randBtn.getLocalBounds().height/2);
 
-        m_perlinBtn = new Text("Perlin Map", m_font, 60);
+        m_perlinBtn = new Text("Perlin Map", m_font, 80);
         m_perlinBtn.position = Vector2f(400, 200);
         m_perlinBtn.origin = Vector2f(m_randBtn.getLocalBounds().width/2,
                                     m_randBtn.getLocalBounds().height/2);
 
-        m_bspBtn = new Text("BSP Map", m_font, 60);
+        m_bspBtn = new Text("BSP Map", m_font, 80);
         m_bspBtn.position = Vector2f(400, 300);
         m_bspBtn.origin = Vector2f(m_randBtn.getLocalBounds().width/2,
                                     m_randBtn.getLocalBounds().height/2);
 
-        m_demoBtn = new Text("Demo Mode", m_font, 60);
+        m_demoBtn = new Text("Demo Mode", m_font, 80);
         m_demoBtn.position = Vector2f(400, 400);
         m_demoBtn.origin = Vector2f(m_randBtn.getLocalBounds().width/2,
                                     m_randBtn.getLocalBounds().height/2);
@@ -430,13 +430,22 @@ class FullDemoGUI : DemoMapGUI
 
     override void botReachedMapEnd()
     {
+        writeln("Bot Results: ", bot.getResults());
+
         if(m_state == State.RUNNING_DEMO)
         {
-            super.botReachedMapEnd();
+            super.beginNewMap();
         }
         else if(m_state == State.RUNNING_SINGLE_DEMO)
         {
-            writeln("Bot Results: ", bot.getResults());
+            m_state = State.MAIN_MENU;
+        }
+    }
+
+    void personReachedMapEnd()
+    {
+        if(m_state == State.PLAYING_MAP)
+        {
             m_state = State.MAIN_MENU;
         }
     }
@@ -447,6 +456,11 @@ class FullDemoGUI : DemoMapGUI
         final switch(m_state)
         {
             case State.PLAYING_MAP:
+                if(m_tileMap.focusedTile == m_tileMap.getPlayerEnd())
+                {
+                    personReachedMapEnd();
+                }
+
                 checkKeyboard();
                 m_player.update(time);
                 m_tileMap.update(time);

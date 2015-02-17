@@ -82,6 +82,15 @@ MapGenConfig loadConfig(in string file)
             {
                 config.vConfig.bot = to!BotType(verif["botType"].str);
             }
+            if("classifier" in verif && verif["classifier"].type == JSON_TYPE.STRING)
+            {
+                config.vConfig.classifierFile = verif["classifier"].str;
+                if("model" in verif && verif["model"].type == JSON_TYPE.STRING)
+                {
+                    config.vConfig.modelFile = verif["model"].str;
+                    config.vConfig.classify = true;
+                }
+            }
         }
     }
 
@@ -118,6 +127,9 @@ struct MapGenConfig
         BotType bot = BotType.Search;
         bool useBots = false;
         bool dijkstras = true;
+        bool classify = false;
+        string classifierFile;
+        string modelFile;
     }
 
     VerificationConfig vConfig;

@@ -21,6 +21,7 @@ import ridgway.pmgcrawler.generators.perlingenerator;
 import ridgway.pmgcrawler.generators.bspgenerator;
 import ridgway.pmgcrawler.mapconfig;
 import ridgway.pmgcrawler.verification.verification;
+import ridgway.pmgcrawler.verification.svm.trainer;
 
 class LifeGUI
 {
@@ -370,6 +371,10 @@ void batchGen(MapGenConfig configObj)
     }
 
     resultsFile.close();
+
+    //Save the classifier-formatted results
+    saveDataFile(dateDir ~ "classifier-data", results);
+    classifyData(configObj, dateDir ~ "classifier-data", dateDir);
 }
 
 immutable string helpMessage =

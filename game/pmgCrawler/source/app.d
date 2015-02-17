@@ -357,6 +357,11 @@ void batchGen(MapGenConfig configObj)
         results ~= resultItem;
     }
 
+    //Save the classifier-formatted results
+    saveDataFile(dateDir ~ "classifier-data", results);
+    classifyData(configObj, dateDir ~ "classifier-data", dateDir);
+    //Pull in the classified results...
+    parseClassificationResults(dateDir, results);
 
     //Create the results file so we can store our verification data
     auto resultsFile = File(dateDir ~ "results", "w");
@@ -371,10 +376,6 @@ void batchGen(MapGenConfig configObj)
     }
 
     resultsFile.close();
-
-    //Save the classifier-formatted results
-    saveDataFile(dateDir ~ "classifier-data", results);
-    classifyData(configObj, dateDir ~ "classifier-data", dateDir);
 }
 
 immutable string helpMessage =

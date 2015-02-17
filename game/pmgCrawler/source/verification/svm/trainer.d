@@ -3,6 +3,9 @@ module ridgway.pmgcrawler.verification.svm.trainer;
 import std.stdio;
 import std.process;
 import std.file;
+import std.algorithm;
+import std.conv;
+import std.math;
 
 import ridgway.pmgcrawler.verification.verification;
 import ridgway.pmgcrawler.mapconfig;
@@ -32,10 +35,10 @@ void classifyData(MapGenConfig config, string dataFile, string outputDir)
 {
     if(config.vConfig.classify)
     {
-        string command = getcwd() ~"/"~ config.vConfig.classifierFile ~ " "
-                         ~ getcwd() ~"/"~ dataFile ~ " "
-                         ~ getcwd() ~"/"~ config.vConfig.modelFile ~ " "
-                         ~ getcwd() ~"/"~ outputDir ~ "classifyResults";
+        string command = getcwd() ~ "/" ~ config.vConfig.classifierFile ~ " "
+                         ~ getcwd() ~ "/" ~ dataFile ~ " "
+                         ~ getcwd() ~ "/" ~ config.vConfig.modelFile ~ " "
+                         ~ getcwd() ~ "/" ~ outputDir ~ "classifyResults";
         //writeln("Running command: ", command);
         auto classify = executeShell(command);
 
@@ -43,6 +46,23 @@ void classifyData(MapGenConfig config, string dataFile, string outputDir)
         {
             writeln("Error with classification:");
             writeln(classify.output);
+        }
+    }
+}
+
+void parseClassificationResults(string outputDir, TestResults[] results)
+{
+    string fileName = getcwd() ~ "/" ~ outputDir ~ "classifyResults";
+
+    string contents = readText(fileName);
+    int i = 0;
+    auto split = splitter(contents, "\n");
+    foreach(line; split)
+    {
+        if(line.length > 0)
+        {
+            results[i].order = cast(int) round(to!float(line));
+            i++;
         }
     }
 }

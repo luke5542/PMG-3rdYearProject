@@ -55,7 +55,7 @@ struct TestResults
         bots["goalsChosen"] = JSONValue().integer(botResults.numGoals);
         vals["bots"] = JSONValue(bots);
 
-        vals["order"] = order;
+        vals["order"] = JSONValue().integer(order);
 
         return JSONValue(vals);
     }

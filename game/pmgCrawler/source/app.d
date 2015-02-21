@@ -8,6 +8,7 @@ import std.random;
 import std.path;
 import std.file;
 import std.algorithm;
+import std.parallelism;
 
 import dsfml.system;
 import dsfml.graphics;
@@ -330,8 +331,8 @@ void batchGen(MapGenConfig configObj)
     copy(config, dateDir ~ baseName(config));
 
     Generators genMethod;
-    TestResults[] results;
-    foreach(i; 0..numBatchGen)
+    TestResults[] results = new TestResults[numBatchGen];
+    foreach(i, ref result; parallel(results))
     {
         genMethod = cast(Generators) uniform!"[]"(Generators.min, Generators.max);
         Image image;
@@ -352,9 +353,8 @@ void batchGen(MapGenConfig configObj)
                 break;
         }
 
-        auto resultItem = runVerification(configObj, image);
-        resultItem.name = title;
-        results ~= resultItem;
+        result = runVerification(configObj, image);
+        result.name = title;
     }
 
     //Save the classifier-formatted results

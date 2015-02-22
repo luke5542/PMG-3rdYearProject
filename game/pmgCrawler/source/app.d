@@ -341,13 +341,13 @@ void batchGen(MapGenConfig configObj)
         {
             case Generators.PERLIN:
                 debug writeln("Generating Perlin Map");
-                image = generatePerlin(dateDir ~ to!string(i) ~"-perlin" ~ ".png", configObj);
+                image = generatePerlin(dateDir ~ to!string(i) ~"-perlin.png\0", configObj);
 
                 title = to!string(i) ~ " - Perlin";
                 break;
             case Generators.BSP:
                 debug writeln("Generating BSP Map");
-                image = generateBSP(dateDir ~ to!string(i) ~ "-bsp" ~ ".png", configObj);
+                image = generateBSP(dateDir ~ to!string(i) ~ "-bsp.png\0", configObj);
 
                 title = to!string(i) ~ " - BSP";
                 break;

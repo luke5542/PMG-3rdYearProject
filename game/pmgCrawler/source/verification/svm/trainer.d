@@ -35,11 +35,21 @@ void classifyData(MapGenConfig config, string dataFile, string outputDir)
 {
     if(config.vConfig.classify)
     {
-        string command = getcwd() ~ "/" ~ config.vConfig.classifierFile ~ " "
-                         ~ getcwd() ~ "/" ~ dataFile ~ " "
-                         ~ getcwd() ~ "/" ~ config.vConfig.modelFile ~ " "
-                         ~ getcwd() ~ "/" ~ outputDir ~ "classifyResults";
-        //writeln("Running command: ", command);
+        version(Windows)
+        {
+            string command = getcwd() ~ "/" ~ config.vConfig.classifierFile ~ ".exe" ~ " "
+                             ~ getcwd() ~ "/" ~ dataFile ~ " "
+                             ~ getcwd() ~ "/" ~ config.vConfig.modelFile ~ " "
+                             ~ getcwd() ~ "/" ~ outputDir ~ "classifyResults";
+        }
+        else
+        {
+            string command = getcwd() ~ "/" ~ config.vConfig.classifierFile ~ " "
+                             ~ getcwd() ~ "/" ~ dataFile ~ " "
+                             ~ getcwd() ~ "/" ~ config.vConfig.modelFile ~ " "
+                             ~ getcwd() ~ "/" ~ outputDir ~ "classifyResults";
+        }
+        debug writeln("Running command: ", command);
         auto classify = executeShell(command);
 
         if(classify.status != 0)

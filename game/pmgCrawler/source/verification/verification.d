@@ -25,7 +25,7 @@ struct TestResults
     bool ranDijkstras = false;
 
     //This is used for the ranking and classificaiton
-    uint order;
+    int order;
 
     struct BotResults
     {

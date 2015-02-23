@@ -362,6 +362,7 @@ void batchGen(MapGenConfig configObj)
     classifyData(configObj, dateDir ~ "classifier-data", dateDir);
     //Pull in the classified results...
     parseClassificationResults(dateDir, results);
+    saveDataFile(dateDir ~ "classifier-data", results);
 
     //Create the results file so we can store our verification data
     auto resultsFile = File(dateDir ~ "results", "w");

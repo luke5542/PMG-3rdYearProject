@@ -6,6 +6,7 @@ import std.file;
 import std.algorithm;
 import std.conv;
 import std.math;
+import std.string;
 
 import ridgway.pmgcrawler.verification.verification;
 import ridgway.pmgcrawler.mapconfig;
@@ -71,7 +72,7 @@ void parseClassificationResults(string outputDir, TestResults[] results)
     {
         if(line.length > 0)
         {
-            results[i].order = cast(int) round(to!float(line));
+            results[i].order = cast(int) round(to!float(chomp(line)));
             i++;
         }
     }

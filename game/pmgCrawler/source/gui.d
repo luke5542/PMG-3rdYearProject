@@ -339,6 +339,7 @@ class FullDemoGUI : DemoMapGUI
         Time m_shaderTime;
 
         Font m_font;
+        Font m_font2;
 
         enum State { PLAYING_MAP, MAIN_MENU, RUNNING_DEMO, RUNNING_SINGLE_DEMO, SHOWING_MAP }
         State m_state = State.MAIN_MENU;
@@ -383,6 +384,12 @@ class FullDemoGUI : DemoMapGUI
         if(!m_font.loadFromFile(TEXT_FONT_LOC))
         {
             writeln("Failed to load font file! Exiting...");
+            exit(1);
+        }
+        m_font2 = new Font();
+        if(!m_font2.loadFromFile(TEXT_FONT2_LOC))
+        {
+            writeln("Failed to load font2 file! Exiting...");
             exit(1);
         }
 
@@ -611,7 +618,7 @@ class FullDemoGUI : DemoMapGUI
         m_botBtn.origin = Vector2f(m_botBtn.getLocalBounds().width/2,
                                     m_botBtn.getLocalBounds().height/2);
 
-        m_mapStats = new Text(to!(dstring)(m_results.toString()), m_font, 20);
+        m_mapStats = new Text(to!(dstring)(m_results.toString()), m_font2, 20);
         m_mapStats.position = Vector2f(500, 300);
         m_mapStats.origin = Vector2f(0, m_mapStats.getLocalBounds().height/2);
 

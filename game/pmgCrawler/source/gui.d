@@ -348,6 +348,7 @@ class FullDemoGUI : DemoMapGUI
 
         Image m_currentMap;
         Sprite m_mapSprite;
+        Text m_backBtn;
         Text m_playBtn;
         Text m_botBtn;
         Text m_mapStats;
@@ -487,6 +488,14 @@ class FullDemoGUI : DemoMapGUI
                 {
                     m_playBtn.setColor(normalColor);
                 }
+                if(m_backBtn.getGlobalBounds().contains(mouseLoc))
+                {
+                    m_backBtn.setColor(highlightColor);
+                }
+                else
+                {
+                    m_backBtn.setColor(normalColor);
+                }
                 if(m_botBtn.getGlobalBounds().contains(mouseLoc))
                 {
                     m_botBtn.setColor(highlightColor);
@@ -571,6 +580,10 @@ class FullDemoGUI : DemoMapGUI
                 {
                     runPlayableMap();
                 }
+                else if(m_backBtn.getGlobalBounds.contains(mouseLoc))
+                {
+                    m_state = State.MAIN_MENU;
+                }
                 else if(m_botBtn.getGlobalBounds().contains(mouseLoc))
                 {
                     runBotOnMap(m_currentMap);
@@ -613,6 +626,11 @@ class FullDemoGUI : DemoMapGUI
         m_playBtn.origin = Vector2f(m_playBtn.getLocalBounds().width/2,
                                     m_playBtn.getLocalBounds().height/2);
 
+        m_backBtn = new Text("Back", m_font, 50);
+        m_backBtn.position = Vector2f(150, 50);
+        m_backBtn.origin = Vector2f(m_playBtn.getLocalBounds().width/2,
+                                    m_playBtn.getLocalBounds().height/2);
+
         m_botBtn = new Text("Bot", m_font, 60);
         m_botBtn.position = Vector2f(550, 550);
         m_botBtn.origin = Vector2f(m_botBtn.getLocalBounds().width/2,
@@ -648,6 +666,7 @@ class FullDemoGUI : DemoMapGUI
                 window.draw(m_mapSprite);
                 window.draw(m_playBtn);
                 window.draw(m_botBtn);
+                window.draw(m_backBtn);
                 window.draw(m_mapStats);
                 break;
             case State.MAIN_MENU:

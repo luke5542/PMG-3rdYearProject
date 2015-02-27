@@ -40,6 +40,7 @@ class Player : CircleShape, Node
             auto tempColor = m_pulseOverlay.fillColor;
             tempColor.a = 200;
             m_pulseOverlay.fillColor = tempColor;
+            m_pulseOverlay.scale = this.scale;
 
             m_pulseOverlay.radius = this.radius * (progress / .75);
             m_pulseOverlay.origin = Vector2f(m_pulseOverlay.radius, m_pulseOverlay.radius);
@@ -47,7 +48,9 @@ class Player : CircleShape, Node
         else
         {
             m_pulseOverlay.radius = this.radius;
+            m_pulseOverlay.scale = this.scale;
             m_pulseOverlay.origin = Vector2f(m_pulseOverlay.radius, m_pulseOverlay.radius);
+            
             auto tempProgress = 1 - ((progress - .75) / .25);
             auto tempColor = m_pulseOverlay.fillColor;
             tempColor.a = cast(ubyte)(200 * tempProgress);

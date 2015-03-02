@@ -10,6 +10,7 @@ import ridgway.pmgcrawler.generators.generator;
 import ridgway.pmgcrawler.mapconfig;
 
 enum SplitDirection { VERTICAL, HORIZONTAL }
+immutable SPLIT_PROBABILITY = .1;
 
 Image generateBSP(MapGenConfig config)
 {
@@ -191,12 +192,20 @@ class BSPGenerator : Generator
         else if(smallWidth && !smallHeight)
         {
             //Split the room height-ways
-            splitHeight(image, bounds, placeStart, placeEnd);
+            float splitChance = uniform(0.0, 1.0);
+            if(splitChance > SPLIT_PROBABILITY)
+            {
+                splitHeight(image, bounds, placeStart, placeEnd);
+            }
         }
         else if(!smallWidth && smallHeight)
         {
             //Split room width-ways
-            splitWidth(image, bounds, placeStart, placeEnd);
+            float splitChance = uniform(0.0, 1.0);
+            if(splitChance > SPLIT_PROBABILITY)
+            {
+                splitWidth(image, bounds, placeStart, placeEnd);
+            }
         }
         else
         {

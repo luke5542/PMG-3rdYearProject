@@ -22,6 +22,9 @@ import ridgway.pmgcrawler.generators.bspgenerator;
 import ridgway.pmgcrawler.generators.perlingenerator;
 
 
+immutable WINDOW_HEIGHT = 800;
+immutable WINDOW_WIDTH  = 1200;
+
 class TileMapGUI
 {
 
@@ -71,7 +74,7 @@ class TileMapGUI
     {
         auto settings = ContextSettings();
         settings.antialiasingLevel = 8;
-        m_window = new RenderWindow(/*VideoMode.getDesktopMode()*/VideoMode(800,600), "PMG Crawler", Window.Style.DefaultStyle, settings);
+        m_window = new RenderWindow(/*VideoMode.getDesktopMode()*/VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "PMG Crawler", Window.Style.DefaultStyle, settings);
         m_window.setFramerateLimit(60);
 
         m_tileMap = new TileMap();
@@ -81,10 +84,10 @@ class TileMapGUI
             exit(1);
         }
 
-        m_tileMap.focusedLocation = Vector2i(400, 300);
+        m_tileMap.focusedLocation = Vector2i(WINDOW_WIDTH/2, WINDOW_HEIGHT/2);
 
         m_player = new Player();
-        m_player.position = Vector2f(400, 300);
+        m_player.position = Vector2f(WINDOW_WIDTH/2, WINDOW_HEIGHT/2);
     }
 
     void run()
@@ -202,7 +205,7 @@ class GeneratedMapGUI : TileMapGUI
             exit(1);
         }
 
-        m_tileMap.focusedLocation = Vector2i(400, 300);
+        m_tileMap.focusedLocation = Vector2i(WINDOW_WIDTH/2, WINDOW_HEIGHT/2);
         m_tileMap.focusedTile = m_tileMap.getPlayerStart();
     }
 
@@ -261,7 +264,7 @@ class DemoMapGUI : TileMapGUI
             exit(1);
         }
 
-        m_tileMap.focusedLocation = Vector2i(400, 300);
+        m_tileMap.focusedLocation = Vector2i(WINDOW_WIDTH/2, WINDOW_HEIGHT/2);
 
         debug writeln("Player Start: ", m_tileMap.getPlayerStart());
         m_tileMap.focusedTile = m_tileMap.getPlayerStart();
@@ -360,6 +363,11 @@ class FullDemoGUI : DemoMapGUI
         Text m_playBtn;
         Text m_botBtn;
         Text m_mapStats;
+
+        //Used with the minimap st00fs
+        View m_view;
+        RenderTexture m_renderTex;
+        Sprite m_minimap;
     }
 
     this(MapGenConfig config)
@@ -368,9 +376,9 @@ class FullDemoGUI : DemoMapGUI
         super(config);
 
         m_player = new Player();
-        m_player.position = Vector2f(400, 300);
+        m_player.position = Vector2f(WINDOW_WIDTH/2, WINDOW_HEIGHT/2);
 
-        m_background = new RectangleShape(Vector2f(800, 600));
+        m_background = new RectangleShape(Vector2f(WINDOW_WIDTH, WINDOW_HEIGHT));
         m_background.position = Vector2f(0, 0);
         m_background.origin = Vector2f(0, 0);
 
@@ -383,7 +391,7 @@ class FullDemoGUI : DemoMapGUI
             }
             else
             {
-                m_shader.setParameter("resolution", Vector2f(800, 600));
+                m_shader.setParameter("resolution", Vector2f(WINDOW_WIDTH, WINDOW_HEIGHT));
                 m_shaderTime = seconds(0);
                 m_shader.setParameter("time", m_shaderTime.asSeconds());
             }
@@ -403,24 +411,41 @@ class FullDemoGUI : DemoMapGUI
         }
 
         m_randBtn = new Text("Random Map", m_font, 80);
-        m_randBtn.position = Vector2f(400, 100);
+        m_randBtn.position = Vector2f(WINDOW_WIDTH/2, WINDOW_HEIGHT/2 - 200);
         m_randBtn.origin = Vector2f(m_randBtn.getLocalBounds().width/2,
                                     m_randBtn.getLocalBounds().height/2);
 
         m_perlinBtn = new Text("Perlin Map", m_font, 80);
-        m_perlinBtn.position = Vector2f(400, 200);
+        m_perlinBtn.position = Vector2f(WINDOW_WIDTH/2, WINDOW_HEIGHT/2 - 100);
         m_perlinBtn.origin = Vector2f(m_randBtn.getLocalBounds().width/2,
                                     m_randBtn.getLocalBounds().height/2);
 
         m_bspBtn = new Text("BSP Map", m_font, 80);
-        m_bspBtn.position = Vector2f(400, 300);
+        m_bspBtn.position = Vector2f(WINDOW_WIDTH/2, WINDOW_HEIGHT/2);
         m_bspBtn.origin = Vector2f(m_randBtn.getLocalBounds().width/2,
                                     m_randBtn.getLocalBounds().height/2);
 
         m_demoBtn = new Text("Demo Mode", m_font, 80);
-        m_demoBtn.position = Vector2f(400, 400);
+        m_demoBtn.position = Vector2f(WINDOW_WIDTH/2, WINDOW_HEIGHT/2 + 100);
         m_demoBtn.origin = Vector2f(m_randBtn.getLocalBounds().width/2,
                                     m_randBtn.getLocalBounds().height/2);
+
+        m_view = new View();
+        m_view.center = Vector2f(WINDOW_WIDTH/2, WINDOW_HEIGHT/2);
+        m_view.size = Vector2f(800, 800);
+        m_view.zoom(4);
+
+        m_renderTex = new RenderTexture();
+        if(!m_renderTex.create(200, 200))
+        {
+            writeln("Failed to create render texture. Exiting...");
+            exit(1);
+        }
+        m_renderTex.smooth = true;
+        m_renderTex.view = m_view;
+
+        m_minimap = new Sprite();
+        m_minimap.position = Vector2f(WINDOW_WIDTH-250, 50);
     }
 
     void runPlayableMap()
@@ -432,7 +457,7 @@ class FullDemoGUI : DemoMapGUI
             exit(1);
         }
 
-        m_tileMap.focusedLocation = Vector2i(400, 300);
+        m_tileMap.focusedLocation = Vector2i(WINDOW_WIDTH/2, WINDOW_HEIGHT/2);
         m_tileMap.focusedTile = m_tileMap.getPlayerStart();
 
         m_state = State.PLAYING_MAP;
@@ -641,26 +666,26 @@ class FullDemoGUI : DemoMapGUI
         auto width = m_currentMap.getSize().x;
         m_mapSprite.origin = Vector2f(width/2, width/2);
         m_mapSprite.scale = Vector2f(400/width, 400/width);
-        m_mapSprite.position = Vector2f(300, 300);
+        m_mapSprite.position = Vector2f(WINDOW_WIDTH/2 - 100, WINDOW_HEIGHT/2);
 
 
         m_playBtn = new Text("Play", m_font, 60);
-        m_playBtn.position = Vector2f(250, 550);
+        m_playBtn.position = Vector2f(WINDOW_WIDTH/2 - 150, WINDOW_HEIGHT/2 + 250);
         m_playBtn.origin = Vector2f(m_playBtn.getLocalBounds().width/2,
                                     m_playBtn.getLocalBounds().height/2);
 
         m_backBtn = new Text("Back", m_font, 50);
-        m_backBtn.position = Vector2f(150, 50);
+        m_backBtn.position = Vector2f(WINDOW_WIDTH/2 - 250, 50);
         m_backBtn.origin = Vector2f(m_playBtn.getLocalBounds().width/2,
                                     m_playBtn.getLocalBounds().height/2);
 
         m_botBtn = new Text("Bot", m_font, 60);
-        m_botBtn.position = Vector2f(550, 550);
+        m_botBtn.position = Vector2f(WINDOW_WIDTH/2 + 150, WINDOW_HEIGHT/2 + 250);
         m_botBtn.origin = Vector2f(m_botBtn.getLocalBounds().width/2,
                                     m_botBtn.getLocalBounds().height/2);
 
         m_mapStats = new Text(to!(dstring)(m_results.toString()), m_font2, 20);
-        m_mapStats.position = Vector2f(500, 300);
+        m_mapStats.position = Vector2f(WINDOW_WIDTH/2 + 100, WINDOW_HEIGHT/2);
         m_mapStats.origin = Vector2f(0, m_mapStats.getLocalBounds().height/2);
 
         m_state = State.SHOWING_MAP;
@@ -677,6 +702,14 @@ class FullDemoGUI : DemoMapGUI
             case State.RUNNING_DEMO:
                 m_tileMap.draw(m_window);
                 window.draw(m_player);
+
+                m_renderTex.clear(Color(100, 100, 100));
+                m_tileMap.draw(m_renderTex);
+                m_renderTex.draw(m_player);
+                m_renderTex.display();
+
+                m_minimap.setTexture(m_renderTex.getTexture());
+                window.draw(m_minimap);
                 break;
             case State.SHOWING_MAP:
                 if(Shader.isAvailable())

@@ -119,7 +119,7 @@ class Bot
                 }
                 else if(!m_nodes[x][y].m_hasSeen)
                 {
-                    colors[x][y] = Color(100, 100, 100, 255);
+                    colors[x][y] = Color(150, 150, 150, 255);
                 }
             }
         }

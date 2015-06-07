@@ -1052,7 +1052,7 @@ void setReachability(BotMapNode[][] nodes, Vector2u location)
             }
         }
 
-        unvisitedNodes.sort;
+        sort(unvisitedNodes);
     }
 }
 

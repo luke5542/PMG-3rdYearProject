@@ -109,15 +109,7 @@ class TileMapGUI
                 }
                 else if(event.type == Event.EventType.KeyPressed)
                 {
-
-                    if(event.key.code == Keyboard.Key.Escape)
-                    {
-                        exit(0);
-                    }
-                    if(event.key.code == Keyboard.Key.Space)
-                    {
-                        m_paused = !m_paused;
-                    }
+                    handleKeyboard(event);
                 }
                 else if(event.type == Event.EventType.MouseButtonReleased)
                 {
@@ -133,6 +125,22 @@ class TileMapGUI
             }
             draw(m_window);
         }
+    }
+
+    bool handleKeyboard(Event event)
+    {
+        if(event.key.code == Keyboard.Key.Escape)
+        {
+            exit(0);
+            return true;
+        }
+        else if(event.key.code == Keyboard.Key.Space)
+        {
+            m_paused = !m_paused;
+            return true;
+        }
+
+        return false;
     }
 
     void handleMouse(Event.MouseButtonEvent mouseButton)
@@ -572,6 +580,21 @@ class FullDemoGUI : DemoMapGUI
                 m_shader.setParameter("time", m_shaderTime.asSeconds());
                 break;
         }
+    }
+
+    override bool handleKeyboard(Event event)
+    {
+        if(!super.handleKeyboard(event))
+        {
+            if(event.key.code == Keyboard.Key.Q)
+            {
+                m_state = State.MAIN_MENU;
+                return true;
+            }
+            return false;
+        }
+
+        return true;
     }
 
     override void handleMouse(Event.MouseButtonEvent mouseButton)

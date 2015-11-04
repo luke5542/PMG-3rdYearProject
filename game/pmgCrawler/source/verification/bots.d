@@ -564,18 +564,46 @@ class BetterBlindBot : AStarBot
         {
             debug if(VERBOSE) writeln("Finding goal...");
             //setCurrentGoal();
-            setClosestNodeDijkstras();
-            m_generatePath = true;
+            m_path = setClosestNodeDijkstras();
+            m_generatePath = false;
+            m_goalFound = false;
+            m_results.numGoals++;
             debug if(VERBOSE) writeln("Goal set to: ", m_endLocation);
         }
-        auto move = super.makeNextMove();
+        //auto move = super.makeNextMove();
+        auto move = m_path.hasMove() ? m_path.pop() : Move.min;
+        applyMove(move);
 
+        debug if(VERBOSE) writeln("making move ", move);
+
+        m_results.numMoves++;
+        
         updateHasSeen();
 
         debug if(VERBOSE) writeln("Bot at location: ", m_location);
 
         return move;
     }
+    
+    /*override Move makeNextMove()
+    {
+        if(m_generatePath)
+        {
+            m_path = getAStarMove(m_endLocation);
+            debug if(VERBOSE) writeln("Generating path...");
+            m_generatePath = false;
+            m_results.numGoals++;
+        }
+        //auto move = getAStarMove(m_endLocation);
+        auto move = m_path.hasMove() ? m_path.pop() : Move.min;
+        applyMove(move);
+
+        debug if(VERBOSE) writeln("making move ", move);
+
+        m_results.numMoves++;
+
+        return move;
+    }*/
 
     bool hasWalkableEdgeNeighbor(int x, int y)
     {
@@ -810,13 +838,13 @@ class BetterBlindBot : AStarBot
         }
     }
 
-    void setClosestNodeDijkstras()
+    Path setClosestNodeDijkstras()
     {
         //Start by seeing if we can get to the exit, which takes priority
         if(m_nodes[m_endGoal.x][m_endGoal.y].m_hasSeen)
         {
             m_endLocation = m_endGoal;
-            return;
+            return getAStarMove(m_endLocation);
         }
 
         initASMap();
@@ -853,12 +881,12 @@ class BetterBlindBot : AStarBot
             sort!nodeComp(unvisitedNodes);
         }
 
-        setGoalFromNodes();
+        return setGoalFromNodes();
     }
 
-    void setGoalFromNodes()
+    Path setGoalFromNodes()
     {
-        AStarMapNode nearestNodes;
+        AStarMapNode[] nearestNodes;
         float closestDistance = m_sizeOfMap.x*2;
         float curDist;
         foreach(x; 0 .. m_sizeOfMap.x)
@@ -866,30 +894,39 @@ class BetterBlindBot : AStarBot
             foreach(y; 0 .. m_sizeOfMap.y)
             {
                 if(m_asNodes[x][y].m_mapNode.m_isWalkable
-                    && !m_asNodes[x][y].m_mapNode.m_hasSeen
-                    && hasWalkableEdgeNeighbor(x, y))
+                    && !m_asNodes[x][y].m_mapNode.m_hasSeen)
+                    //&& hasWalkableEdgeNeighbor(x, y))
                 {
                     curDist = m_asNodes[x][y].m_distance;
 
-                    if(nearestNodes is null)
+                    if(nearestNodes.length == 0)
                     {
-                        nearestNodes = m_asNodes[x][y];
+                        nearestNodes ~= m_asNodes[x][y];
                         closestDistance = curDist;
                     }
                     else if(curDist < closestDistance)
                     {
-                        nearestNodes = m_asNodes[x][y];
+                        nearestNodes = nearestNodes[0..1];
+                        nearestNodes[0] = m_asNodes[x][y];
                         closestDistance = curDist;
+                    }
+                    else if(curDist == closestDistance)
+                    {
+                        nearestNodes ~= m_asNodes[x][y];
                     }
                 }
             }
         }
 
-        if(nearestNodes !is null)
+        if(nearestNodes.length != 0)
         {
-            m_endLocation = nearestNodes.m_mapNode.m_location;
+            auto selNode = randomSample(nearestNodes, 1).front;
+            m_endLocation = selNode.m_mapNode.m_location;
             m_goalFound = false;
+            return getPathFromNode(selNode);
         }
+        
+        return Path.init;
     }
 }
 
@@ -1052,7 +1089,7 @@ void setReachability(BotMapNode[][] nodes, Vector2u location)
             }
         }
 
-        unvisitedNodes.sort;
+        sort(unvisitedNodes);
     }
 }
 

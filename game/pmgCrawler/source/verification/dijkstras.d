@@ -98,7 +98,7 @@ class DijkstrasVerifier
                     }
                 }
             }
-            unvisitedNodes.sort;
+            sort(unvisitedNodes);
         }
 
         debug writeln("End Node Visited: ", nodes[m_mapToTest.getPlayerEnd.x][m_mapToTest.getPlayerEnd.y]);

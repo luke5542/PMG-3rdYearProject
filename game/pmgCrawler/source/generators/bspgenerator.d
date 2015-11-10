@@ -96,10 +96,7 @@ class BSPGenerator : Generator
     Image generateImage()
     {
         auto image = new Image();
-        if(!image.create(m_width, m_height, Color.Black))
-        {
-            return null;
-        }
+        image.create(m_width, m_height, Color.Black);
 
         bsp(image, IntRect(0, 0, image.getSize.x, image.getSize.y), true, true);
 

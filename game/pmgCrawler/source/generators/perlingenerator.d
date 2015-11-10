@@ -89,10 +89,7 @@ class PerlinGenerator : Generator
         generateNoise();
 
         Image image = new Image();
-        if(!image.create(m_noiseWidth, m_noiseHeight, Color.Black))
-        {
-            return null;
-        }
+        image.create(m_noiseWidth, m_noiseHeight, Color.Black);
 
         //Generate the initial color image...
         foreach(i; 0 .. m_noiseWidth)
@@ -270,10 +267,7 @@ class PerlinGenerator_3D
         generateNoise();
 
         Image image = new Image();
-        if(!image.create(m_noiseWidth, m_noiseHeight, Color.Black))
-        {
-            return null;
-        }
+        image.create(m_noiseWidth, m_noiseHeight, Color.Black);
 
         foreach(i; 0..m_noiseWidth)
         {

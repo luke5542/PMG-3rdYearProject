@@ -436,11 +436,7 @@ class FullDemoGUI : DemoMapGUI
         m_view.zoom(4);
 
         m_renderTex = new RenderTexture();
-        if(!m_renderTex.create(200, 200))
-        {
-            writeln("Failed to create render texture. Exiting...");
-            exit(1);
-        }
+        m_renderTex.create(200, 200);
         m_renderTex.smooth = true;
         m_renderTex.view = m_view;
 

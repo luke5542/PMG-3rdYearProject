@@ -2,7 +2,7 @@
 	"fileVersion": 1,
 	"versions": {
 		"d-unit": "0.7.2",
-		"dsfml": "2.1.0",
+		"dsfml": "~master",
 		"dunit": "1.0.12"
 	}
 }

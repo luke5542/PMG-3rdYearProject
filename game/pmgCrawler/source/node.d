@@ -9,8 +9,8 @@ import ridgway.pmgcrawler.animation;
 interface Node
 {
 	void runAnimation(Animatable anim);
-	void updateAnimations(Time time);
-	void update(Time time);
+	void updateAnimations(Duration time);
+	void update(Duration time);
 }
 
 mixin template NormalNode()
@@ -31,7 +31,7 @@ mixin template NormalNode()
 	}
 
 	/// Update the currently running animations.
-	void updateAnimations(Time time)
+	void updateAnimations(Duration time)
 	{
 		int[] itemsToRemove;
 		foreach(i, anim; m_animations)
@@ -83,4 +83,3 @@ mixin template NormalNode()
 	}
 
 }
-

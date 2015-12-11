@@ -26,7 +26,7 @@ class Player : CircleShape, Node
         m_pulseOverlay = new CircleShape(CHARACTER_SIZE);
         m_pulseOverlay.fillColor = Color(163, 25, 209, 200);
 
-        Time pulseAnimDur = seconds(1.75);
+        Duration pulseAnimDur = msecs(1_750);
         auto delAnim = new DelegateAnimation(pulseAnimDur, &updatePulseAnim);
         delAnim.repeatMode = RepeatMode.REPEAT;
         delAnim.repeatCount = INFINITE;
@@ -59,7 +59,7 @@ class Player : CircleShape, Node
         }
     }
 
-    void update(Time time)
+    void update(Duration time)
     {
         //TODO find something to update
         updateAnimations(time);

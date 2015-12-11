@@ -1,6 +1,7 @@
 module ridgway.pmgcrawler.animation;
 
 import std.stdio;
+import core.time;
 
 import dsfml.system;
 import dsfml.graphics;
@@ -25,7 +26,7 @@ enum AnimationSetMode
 interface Animatable
 {
 	protected void updateProgress(double progress);
-	public void update(Time deltaTime);
+	public void update(Duration deltaDuration);
 	public bool isRunning();
 }
 
@@ -39,8 +40,8 @@ class Animation : Animatable
 {
 	private
 	{
-		Time m_duration;
-		Time m_progress;
+		Duration m_duration;
+		Duration m_progress;
 		bool m_isRunning;
 
 		Interpolator m_interpolator;
@@ -54,7 +55,7 @@ class Animation : Animatable
 		UpdateListener[] m_listeners;
 	}
 
-	this(Time duration)
+	this(Duration duration)
 	{
 		m_duration = duration;
 		m_interpolator = new LinearInterpolator();
@@ -68,13 +69,13 @@ class Animation : Animatable
 	/// amount that this animation has completed by. TODO: word better
 	protected abstract void updateProgress(double progress);
 
-	/// This takes the delta time since the last update call as the input.
-	final void update(Time deltaTime)
+	/// This takes the delta Duration since the last update call as the input.
+	final void update(Duration deltaDuration)
 	{
 		if(m_isRunning)
 		{
-			m_progress += deltaTime;
-			double progress = cast(double)(m_progress.asMicroseconds()) / m_duration.asMicroseconds();
+			m_progress += deltaDuration;
+			double progress = cast(double)(m_progress.total!"usecs") / m_duration.total!"usecs";
 
 			if(progress >= 1.0)
 			{
@@ -97,7 +98,7 @@ class Animation : Animatable
 								break;
 							case RepeatMode.REVERSE:
 								m_isReverse = m_repeatCount % 2 == 0;
-								m_progress = microseconds(m_duration.asMicroseconds());
+								m_progress = usecs(m_duration.total!"usecs");
 								break;
 						}
 						m_isRunning = false;
@@ -109,12 +110,12 @@ class Animation : Animatable
 						final switch(m_repeatMode)
 						{
 							case RepeatMode.REPEAT:
-								m_progress = microseconds(m_progress.asMicroseconds() % m_duration.asMicroseconds());
+								m_progress = usecs(m_progress.total!"usecs" % m_duration.total!"usecs");
 								break;
 							case RepeatMode.REVERSE:
 								m_isReverse = m_currentRunCount % 2 == 1;
-								m_progress = microseconds(m_progress.asMicroseconds() % m_duration.asMicroseconds());
-								progress = cast(double)(m_progress.asMicroseconds()) / m_duration.asMicroseconds();
+								m_progress = usecs(m_progress.total!"usecs" % m_duration.total!"usecs");
+								progress = cast(double)(m_progress.total!"usecs") / m_duration.total!"usecs";
 								break;
 						}
 
@@ -193,7 +194,7 @@ class Animation : Animatable
 	}
 
 	/// If the repeat count is negative, then we repeat infinitely.
-	/// Otherwise, we run the animation repeatCount number of times.
+	/// Otherwise, we run the animation repeatCount number of Durations.
 	@property
 	{
 		int repeatCount(int count)
@@ -216,7 +217,7 @@ class DelegateAnimation : Animation
 		void delegate(double) m_update;
 	}
 
-	this(Time duration, void delegate(double) update)
+	this(Duration duration, void delegate(double) update)
 	{
 		super(duration);
 		m_update = update;
@@ -237,7 +238,7 @@ class TransformAnimation : Animation
 		Transformable m_transformable;
 	}
 
-	this(Transformable transformable, Time duration)
+	this(Transformable transformable, Duration duration)
 	{
 		super(duration);
 		m_transformable = transformable;
@@ -253,7 +254,7 @@ class RotateAnimation : TransformAnimation
 		double m_endValue;
 	}
 
-	this(Transformable transformable, Time duration, double startValue, double endValue)
+	this(Transformable transformable, Duration duration, double startValue, double endValue)
 	{
 		super(transformable, duration);
 		m_startValue = startValue;
@@ -277,7 +278,7 @@ class VectorTransformAnimation : TransformAnimation
 		Vector2f m_endValue;
 	}
 
-	this(Transformable transformable, Time duration, Vector2f startValue, Vector2f endValue)
+	this(Transformable transformable, Duration duration, Vector2f startValue, Vector2f endValue)
 	{
 		super(transformable, duration);
 		m_startValue = startValue;
@@ -294,7 +295,7 @@ class VectorTransformAnimation : TransformAnimation
 class TranslationAnimation : VectorTransformAnimation
 {
 
-	this(Transformable transformable, Time duration, Vector2f startValue, Vector2f endValue)
+	this(Transformable transformable, Duration duration, Vector2f startValue, Vector2f endValue)
 	{
 		super(transformable, duration, startValue, endValue);
 	}
@@ -309,7 +310,7 @@ class TranslationAnimation : VectorTransformAnimation
 class ScaleAnimation : VectorTransformAnimation
 {
 
-	this(Transformable transformable, Time duration, Vector2f startValue, Vector2f endValue)
+	this(Transformable transformable, Duration duration, Vector2f startValue, Vector2f endValue)
 	{
 		super(transformable, duration, startValue, endValue);
 	}
@@ -332,7 +333,7 @@ class SpriteAnimation : Animation
 
 	this(Sprite sprite, SpriteSheet spriteSheet, SpriteFrameList frameList)
 	{
-		super(milliseconds(cast(int) frameList.getDuration()));
+		super(msecs(cast(int) frameList.getDuration()));
 		m_sprite = sprite;
 		m_spriteSheet = spriteSheet;
 		m_frameList = frameList;
@@ -376,7 +377,7 @@ class AnimationSet : Animatable
 	//Does nothing because this doesn't need it...
 	final void updateProgress(double progress) {};
 
-	final void update(Time deltaT)
+	final void update(Duration deltaT)
 	{
 		if(m_isRunning)
 		{

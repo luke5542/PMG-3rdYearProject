@@ -117,7 +117,7 @@ class TileMapGUI
                 }
             }
 
-            Time time = clock.getElapsedTime();
+            Duration time = clock.getElapsedTime();
             clock.restart();
             if(!m_paused)
             {
@@ -148,7 +148,7 @@ class TileMapGUI
         //Do nothing for now...
     }
 
-    void update(ref RenderWindow window, Time time)
+    void update(ref RenderWindow window, Duration time)
     {
         checkKeyboard();
 
@@ -297,7 +297,7 @@ class DemoMapGUI : TileMapGUI
         }
     }
 
-    override void update(ref RenderWindow window, Time time)
+    override void update(ref RenderWindow window, Duration time)
     {
         if(m_tileMap.canMove)
         {
@@ -347,7 +347,7 @@ class FullDemoGUI : DemoMapGUI
 
         RectangleShape m_background;
         Shader m_shader;
-        Time m_shaderTime;
+        Duration m_shaderTime;
 
         Font m_font;
         Font m_font2;
@@ -393,7 +393,7 @@ class FullDemoGUI : DemoMapGUI
             {
                 m_shader.setParameter("resolution", Vector2f(WINDOW_WIDTH, WINDOW_HEIGHT));
                 m_shaderTime = seconds(0);
-                m_shader.setParameter("time", m_shaderTime.asSeconds());
+                m_shader.setParameter("time", m_shaderTime.total!"seconds");
             }
         }
 
@@ -487,7 +487,7 @@ class FullDemoGUI : DemoMapGUI
         }
     }
 
-    override void update(ref RenderWindow window, Time time)
+    override void update(ref RenderWindow window, Duration time)
     {
         auto mouseLoc = Mouse.getPosition(window);
         final switch(m_state)
@@ -535,7 +535,7 @@ class FullDemoGUI : DemoMapGUI
                 }
 
                 m_shaderTime += time;
-                m_shader.setParameter("time", m_shaderTime.asSeconds());
+                m_shader.setParameter("time", (cast(double) m_shaderTime.total!"usecs")/1_000_000);
                 break;
 
             case State.MAIN_MENU:
@@ -573,7 +573,7 @@ class FullDemoGUI : DemoMapGUI
                 }
 
                 m_shaderTime += time;
-                m_shader.setParameter("time", m_shaderTime.asSeconds());
+                m_shader.setParameter("time", (cast(double) m_shaderTime.total!"usecs")/1_000_000);
                 break;
         }
     }

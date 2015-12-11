@@ -346,7 +346,7 @@ class TileMap : Drawable, Transformable, Node
         return m_size;
     }
 
-    void update(Time time)
+    void update(Duration time)
     {
         updateAnimations(time);
     }
@@ -376,7 +376,7 @@ private:
         auto nextLocation = Vector2f(m_tileCenter.x - cast(float)(m_focusedTile.x * m_tileSize.x) - (m_tileSize.x / 2),
                                      m_tileCenter.y - cast(float)(m_focusedTile.y * m_tileSize.y) - (m_tileSize.y / 2));
 
-        auto trasnlateAnim = new TranslationAnimation(this, milliseconds(100), this.position, nextLocation);
+        auto trasnlateAnim = new TranslationAnimation(this, msecs(100), this.position, nextLocation);
         trasnlateAnim.addUpdateListener(new MapAnimUpdateListener);
         runAnimation(trasnlateAnim);
     }

@@ -85,14 +85,14 @@ class LifeGUI
                 }
             }
 
-            Time time = clock.getElapsedTime();
+            Duration time = clock.getElapsedTime();
             clock.restart();
             update(window, time);
             draw(window);
         }
     }
 
-    void update(ref RenderWindow window, Time time)
+    void update(ref RenderWindow window, Duration time)
     {
         //writeln("updating...");
 

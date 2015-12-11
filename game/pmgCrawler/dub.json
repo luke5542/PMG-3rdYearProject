@@ -13,7 +13,7 @@
             "lflags-osx": ["-Llibs"],
             "dependencies":
             {
-                "dsfml:graphics": "2.1.0",
+                "dsfml:graphics": "~master",
                 "d-unit": ">=0.7.1",
                 "dunit": ">=1.0.10",
             },
@@ -36,7 +36,7 @@
             "lflags-windows": ["+C:\\Users\\hodor\\Documents\\school_projects\\3rdYearProject\\pmg-3rdyearproject\\game\\pmgCrawler\\dlls\\"],
             "dependencies":
             {
-                "dsfml:graphics": "2.1.0",
+                "dsfml:graphics": "~master",
                 "d-unit": ">=0.7.1",
                 "dunit": ">=1.0.10",
             },
@@ -80,7 +80,7 @@
             "lflags-windows": ["+C:\\Users\\hodor\\Documents\\school_projects\\3rdYearProject\\pmg-3rdyearproject\\game\\pmgCrawler\\dlls\\"],
             "dependencies":
             {
-                "dsfml:graphics": "2.1.0",
+                "dsfml:graphics": "~master",
                 "d-unit": ">=0.7.1",
                 "dunit": ">=1.0.10",
             },
@@ -124,7 +124,7 @@
             "lflags-windows": ["+C:\\Users\\hodor\\Documents\\school_projects\\3rdYearProject\\pmg-3rdyearproject\\game\\pmgCrawler\\dlls\\"],
             "dependencies":
             {
-                "dsfml:graphics": "2.1.0",
+                "dsfml:graphics": "~master",
                 "d-unit": ">=0.7.1",
                 "dunit": ">=1.0.10",
             },
@@ -168,7 +168,7 @@
             "lflags-windows": ["+C:\\Users\\hodor\\Documents\\school_projects\\3rdYearProject\\pmg-3rdyearproject\\game\\pmgCrawler\\dlls\\"],
             "dependencies":
             {
-                "dsfml:graphics": "2.1.0",
+                "dsfml:graphics": "~master",
                 "d-unit": ">=0.7.1",
                 "dunit": ">=1.0.10",
             },

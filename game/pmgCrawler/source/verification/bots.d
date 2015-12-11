@@ -1023,7 +1023,7 @@ TestResults.BotResults testBot(TileMap map, MapGenConfig config)
             }
         }
 
-        map.update(seconds(.25));
+        map.update(msecs(250));
     }
 
     return bot.getResults();
